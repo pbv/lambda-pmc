@@ -59,10 +59,12 @@ applications, so they may represent arbitrary expressions
 and not just lambda abstractions.  
 
 
-\subsection{Reduction rules}
-Following~\cite{kahl_2004} we review the semantics of pattern matching
-calculus as two reduction relations, namely, $\expred$ between
-expressions and $\matred$ between matchings. 
+\subsection{Reduction rules}\label{sec:reduction}
+Following~\cite{kahl_2004} we review the pattern matching calculus as
+two reduction relations, namely, $\expred$ between expressions and
+$\matred$ between matchings. We leave the definition of an
+evaluation strategy and normal forms to
+Section~\ref{sec:bigstep} so this does not yet define a complete semantics.
 
 The first two rules state that failure is the left unit for
 $\amatchalt$ while return is the left zero:

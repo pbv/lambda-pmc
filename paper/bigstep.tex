@@ -281,12 +281,16 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
   
 
   Rules~\bigrule{Alt1} and \bigrule{Alt2} handle progress and failure
-  in alternative matchings.
-  Note that in \bigrule{Alt2} evaluation continues with the updated
-  heap $\Delta$ because the evaluations effects of the failed match
-  need to be shared when evaluating $m_2$.
+  in alternative matchings.  Note that in \bigrule{Alt2} evaluation
+  continues with the updated heap $\Delta$ because the evaluations
+  effects of the failed match need to be shared when evaluating $m_2$.
   Note also that the argument stack is shared between $m_1$ and $m_2$
-  (implementing the distributivity of $\amatcharg$ against $\mid$).
+  implementing rule $(\amatcharg\mid)$ of Section~\ref{sec:reduction}.
+  This sharing justifies why we restrict argument supply to single
+  variables: allowing arbitrary expressions as arguments could
+  duplicate computation because the same expression could be evaluated
+  in more than one alternative. By restricting to single variables
+  we can ensure that results are shared.
     
     
 \subsection{Extension for pattern guards}\label{sec:pattern-guards}
@@ -297,23 +301,6 @@ argument matches of the form $\matcharg{y}{m}$.  This prevents
 encoding any interesting boolean and pattern guards: we cannot use
 a let binding to name the guard expression because it will
 typically refer to variables bound by the patterns.
-
-% To encode boolean guards and pattern guards
-% it is then necessary to use a let expression to name the scrutinee.
-% For example, the translation of the \emph{nodups} function of
-% Section~\ref{sec:examples} becomes:
-% \[
-%   nodups = \lambda
-%   \begin{array}[t]{l}
-%     (x:xs) \amatchpat
-%     xs \amatcharg (y:xs') \amatchpat \\
-%     \qquad \lreturn \alet ~t = (x==y) \\
-%     \qquad\quad ~\ain~ \lambda (t \amatcharg \textsf{True} \amatchpat \matchreturn{nodups~ xs})\rreturn  \\
-%     \amatchalt \ldots
-%   \end{array}
-% \]
-% Operationally we can see that this will build a heap expression for $t$ that is
-% immediately evaluated and never needed again.
 
 The solution is to introduce pattern guards explicitly in the
 normalized syntax for \lambdaPMC:

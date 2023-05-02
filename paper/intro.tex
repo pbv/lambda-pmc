@@ -7,7 +7,7 @@ of Kahl~\cite{kahl_2004}.
 Classical presentations of pattern matching in abstract machines for
 functional languages define the operational semantics by translation
 a source language such as Haskell
-into simple case expressions~\cite{spj_1987_chap5,jones_1992}. For
+into simple case expressions~\cite{spj_1987,jones_1992}. For
 example, consider the following Haskell function that checks whether a
 list is ``short'':
 \begin{verbatim}
@@ -26,7 +26,7 @@ Complex patterns such as \verb|(x:y:ys)| must be translated into
 nested case expressions with simple patterns and
 matches are made complete by introducing missing constructors.
 The translation is non-local: some optimizations may be 
-necessary to avoid duplicating work~\cite{spj_1987_chap5}.
+necessary to avoid duplicating work~\cite{spj_1987}.
 This is complicated further by extra features
 such as \emph{pattern guards}~\cite{haskell_2010_report}.
 
