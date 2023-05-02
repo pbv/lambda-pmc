@@ -1,0 +1,56 @@
+
+\newcommand{\lambdaPMC}{\ensuremath{\lambda PMC}}
+
+\newcommand{\lset}{\ensuremath{L}}
+\newcommand{\loc}{\ensuremath{y}}
+
+\newcommand{\llet}[2]{\ensuremath{\textsf{let}~#1~\textsf{in}~#2}}
+\newcommand{\alet}{\textsf{let}}
+\newcommand{\ain}{\textsf{in}}
+\newcommand{\abstr}[1]{\ensuremath{\lambda#1}}
+\newcommand{\app}[2]{\ensuremath{#1~#2}}
+\newcommand{\emptyexpr}{\ensuremath{\varnothing}}
+
+\newcommand{\matchpat}[2]{\ensuremath{#1 \Rightarrow #2}}
+\newcommand{\amatchpat}{\ensuremath{\Rightarrow}}
+\newcommand{\matcharg}[2]{\ensuremath{#1\rhd #2}}
+\newcommand{\amatcharg}{\ensuremath{\rhd}}
+\newcommand{\matchalt}[2]{\ensuremath{#1 \mid #2}}
+\newcommand{\amatchalt}{\ensuremath{\mid}}
+\newcommand{\matchreturn}[1]{\ensuremath{\left\lceil #1\right\rceil}}
+\newcommand{\lreturn}{\ensuremath{\lceil}}
+\newcommand{\rreturn}{\ensuremath{\rceil}}
+\newcommand{\matchfail}{\ensuremath{\lightning}}
+\newcommand{\matchresult}{\ensuremath{m'}}
+
+\newcommand{\matchguard}[3]{\ensuremath{#1\rhd #2 \Rightarrow #3}}
+
+\newcommand{\trim}{\ensuremath{\textsf{trim}}}
+
+\newcommand{\argstack}{\ensuremath{A}}
+\newcommand{\retstack}{\ensuremath{S}}
+
+
+\newcommand{\eval}[1]{\ensuremath{\textsf{E}~#1}}
+\newcommand{\match}[2]{\ensuremath{\textsf{M}~#1~#2}}
+\newcommand{\constr}[2]{\ensuremath{#1(#2)}}
+
+% evaluate saturated matchings
+\newcommand{\matev}{\ensuremath{\Downarrow_{\textsf{M}}}}
+% evaluate expressions
+\newcommand{\expev}{\ensuremath{\Downarrow_{\textsf{E}}}}
+
+% standard reductions
+\newcommand{\matred}{\ensuremath{\xrightarrow[\textsf{M}]{}}}
+\newcommand{\expred}{\ensuremath{\xrightarrow[\textsf{E}]{}}}
+  
+
+
+% arity of a matching
+\newcommand{\arity}[1]{\ensuremath{\#{#1}}}
+
+\newcommand{\bigrule}[1]{\ensuremath{\textsc{#1}_{\Downarrow}}}
+\newcommand{\smallrule}[1]{\ensuremath{\textsc{#1}_{\Rightarrow}}}
+
+\newcommand{\kont}{\ensuremath{\kappa}}
+

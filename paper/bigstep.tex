@@ -1,0 +1,362 @@
+\section{Natural semantics}\label{sec:bigstep}
+
+In this section we define a natural (i.e.\@ big-step) semantics for
+evaluation of expressions and matchings.  The semantics is based in
+Sestof's revision~\cite{sestof_1997} of Launchbury's semantics for
+lazy evaluation~\cite{launchbury_1993}.
+
+\begin{figure}
+  \[
+    \begin{array}{rcll}
+      e & &     \text{expressions} \\
+      e & ::= &  x  & \text{variable} \\
+      & | &  \app{e}{y} & \text{function application} \\
+      & | & \abstr{m} & \text{matching abstraction} \\
+      & | & \constr{c}{y_1,\ldots,y_n} & \text{constructor application} \\
+      & | & \llet{\{x_i=e_i\}}{e'} & \text{let(rec) bindings} \\[2ex]
+      %%
+      m &  & \text{matchings} \\
+      m & ::= & \matchreturn{e} & \text{return expression}\\
+      & | & \matchfail & \text{failure} \\
+      & | & \matchpat{p}{m} & \text{match pattern} \\
+      & | & \matcharg{y}{m} & \text{apply argument}\\
+      & | & \matchalt{m_1}{m_2} & \text{alternative}\\[2ex]
+      %%
+      p & & \text{patterns (as before)}
+  \end{array}
+\]
+\caption{Normalized syntax for \lambdaPMC.}\label{fig:syntax-normalized}
+\end{figure}
+
+\subsection{Normalized syntax}
+As in Launchbury's semantics, we will restrict arguments of
+applications to be variables; complex arguments must be explicitly
+named using let bindings.  This ensures that we can update a result
+after evaluation and avoid work duplication.
+
+Figure~\ref{fig:syntax-normalized} defines the syntax for normalized
+\lambdaPMC. In the remaining of this paper we assume all expressions
+and matchings to be normalized.
+
+\subsection{Preliminary definitions}
+
+Let \emph{heaps} $\Gamma, \Delta, \Theta$ to be finite mappings from
+variables to (possibly unevaluated) expressions.  The notation
+$\Gamma[\loc \mapsto e]$ in a conclusion extends a heap with an extra
+entry; dually, this is also used in hypotheses to extract an entry
+from a heap.
+
+Because matchings can encode multi-argument functions and also
+argument applications, we have to define the results of evaluations
+accordingly. First we define a syntatical measure \arity{m} of the \emph{arity}
+of a matching:
+\[
+  \begin{array}{rcll}
+    \arity{\matchreturn{e}} &=&  \arity{\matchfail} &= 0\\
+    \arity{(\matchpat{p}{m})} &=& 1 + \arity{m} \\
+    \arity{(\matcharg{y}{m})} &=& \max(0, \arity{m} - 1) \\
+%%    \arity{{(\matchguard{e}{\constr{c}{\vec{p}}}{m})}} &=& \arity{m} \\
+     \arity{(\matchalt{m_1}{m_2})} &=& \arity{m_1} &= \arity{m_2} \\
+                            & \multicolumn{2}{l}{\text{(must have equal arity)}}
+  \end{array}
+\]
+The last condition generalizes the Haskell syntax rule that the number
+of patterns for each clause of a definition must be the
+same~(Section~4.4.3.1 of~\cite{haskell_2010_report}).
+
+A \emph{weak head normal normal} (whnf) $w$ is then either
+a matching abstraction of arity greater than zero or a constructor:
+\[
+\begin{array}{rcll}
+  w  &::=&  \lambda m & \text{such that}~ \arity{m}> 0 \\
+     &|& \constr{c}{y_1,\ldots,y_n}
+\end{array}
+\]
+If $\arity{m}>0$ then $m$ expects at least one argument, i.e.\@
+behaves like a lambda abstraction.  If $\arity m= 0$ then $m$ is
+\emph{satured} (i.e.\@ fully applied) and therefore \emph{not} a whnf.
+
+This definition of weak normal forms implies that a partially applied
+matching will not be evaluated e.g.\@
+$\lambda(\matcharg{a}{\matchpat{x}{\matchpat{y}{\matchreturn{e}}}})$
+is in whnf. This is similar to a partial application in an abstract
+machine with multi-argument functions e.g.\@ the STG~\cite{jones_1992}.
+
+
+\begin{figure}
+  \begin{gather*}
+    \framebox{\ensuremath{\Gamma;\lset;e \expev \Delta; w}} \qquad \text{expression evaluation} \\[4ex]    
+    %
+    %
+    \prooftree
+    \justifies
+    \Gamma; \lset; w \expev \Gamma; w
+    \using{\bigrule{Whnf}}
+    \endprooftree\\[3ex]
+    %
+    \prooftree
+    \arity{m}= 0 \and
+    \Gamma; \lset; [\,];\, m \matev \Delta;\matchreturn{e} \and
+    \Delta; \lset; e \expev \Theta;\,w
+    \justifies
+    \Gamma;\lset; \lambda m \expev \Theta;w
+    \using{\bigrule{Sat}}
+    \endprooftree\\[3ex]
+    %    %
+    \prooftree
+    \Gamma;\lset\cup\{\loc\}; e \expev \Delta; w 
+    \justifies
+    \Gamma[\loc\mapsto e]; \lset; \loc \expev \Delta[\loc\mapsto w]; w
+    \using{\bigrule{Var}}
+    \endprooftree \\[3ex]
+    %% 
+    \prooftree
+    \Gamma;\lset; e\expev \Delta;\lambda m
+    \and
+    \Delta;\lset; \lambda (\matcharg{\loc}{m}) \expev \Theta;w 
+    \justifies
+    \Gamma;\lset; (e~\loc) \expev \Theta; w
+    \using{\bigrule{App}}
+    \endprooftree \\[3ex]
+    %
+    %
+    \prooftree
+    \Gamma[\{\loc_i\mapsto \widehat{e}_i\}];\lset; \widehat{e}' \expev \Delta;w
+    \justifies
+    \Gamma;\lset; \llet{\{x_i=e_i\}}{e'} \expev \Delta;w
+    \using{\bigrule{Let}} 
+    \endprooftree \\
+    \text{where}~\loc_i ~\text{are fresh wrt}~\lset, \Gamma,e_i,e' \\
+    \widehat{e}_i = e_i[\loc_1/x_1,\ldots,\loc_n/x_n], \\
+    \widehat{e}' = e' [\loc_1/x_1,\ldots,\loc_n/x_n]
+  \end{gather*}
+  \caption{Expression evaluation}\label{fig:expr-eval}
+\end{figure}
+
+\begin{figure}
+  \begin{gather*}
+    %
+    \framebox{\ensuremath{\Gamma;\lset;A;m\matev \Delta;\matchresult}} \qquad
+    \text{matching evaluation} \\[4ex]
+    %
+    \prooftree
+    \justifies
+    \Gamma; \lset; \argstack; \matchreturn{e} \matev \Gamma; \matchreturn{\matcharg{\argstack}{e}}
+    \using{\bigrule{Return}}
+    \endprooftree \\[3ex] 
+    %
+    \prooftree
+    \justifies
+    \Gamma; \lset; A; \matchfail \matev \Gamma;\matchfail
+    \using{\bigrule{Fail}}
+    \endprooftree\\[3ex]
+    %
+    \prooftree
+    \Gamma; \lset; (y:\argstack); m \matev \Delta;\matchresult
+    \justifies
+    \Gamma; \lset; \argstack; \matcharg{y}{m} \matev \Delta; \matchresult
+    \using{\bigrule{Arg}}
+    \endprooftree\\[3ex]
+    %
+    \prooftree
+    \Gamma;\lset; \argstack; m[y/x] \matev \Delta; \matchresult
+    \justifies
+    \Gamma; \lset; (y:\argstack); \matchpat{x}{m} \matev \Delta; \matchresult
+    \using{\bigrule{Bind}}
+    \endprooftree \\[3ex]
+    %
+    \prooftree
+    \begin{array}{l}
+    \Gamma;\lset; y\expev \Delta; \constr{c}{y_1,\ldots,y_n} \\
+    \Delta;\lset;\argstack; \matcharg{y_1}{p_1} \amatchpat \ldots \amatchpat \matcharg{y_n}{p_n} \amatchpat m
+      \matev \Theta;\matchresult
+    \end{array}
+    \justifies
+    \Gamma; \lset; (y:\argstack); \matchpat{\constr{c}{p_1,\ldots,p_n}}{m}
+    \matev \Theta;\matchresult
+    \using{\bigrule{Cons1}}
+    \endprooftree \\[3ex]
+    %
+    %
+    \prooftree
+    \Gamma;\lset; y\expev \Delta; \constr{c'}{y_1,\ldots, y_k} \qquad
+    c \neq c' \lor n \neq k
+    \justifies
+    \Gamma; \lset; (y:\argstack); \matchpat{\constr{c}{p_1,\ldots, p_n}}{m}
+    \matev \Delta; \matchfail
+    \using{\bigrule{Cons2}}
+    \endprooftree    \\[3ex]
+    %
+    \prooftree
+    \Gamma;\lset;\argstack; m_1 \matev \Delta;\matchreturn{e}
+    \justifies
+    \Gamma;\lset;\argstack; (\matchalt{m_1}{m_2}) \matev \Delta;\matchreturn{e}
+    \using{\bigrule{Alt1}}
+    \endprooftree \\[3ex]
+    %
+    %
+    \prooftree
+    \Gamma;\lset;\argstack; m_1 \matev \Delta;\matchfail  \qquad
+    \Delta;\lset;\argstack; m_2 \matev \Theta; \matchresult
+    \justifies
+    \Gamma;\lset;\argstack; (\matchalt{m_1}{m_2}) \matev \Theta;\matchresult
+    \using{\bigrule{Alt2}}
+    \endprooftree
+  \end{gather*}
+  
+  \caption{Basic matching evaluation}\label{fig:match-eval}
+\end{figure}
+
+
+
+
+\subsection{Evaluation rules}
+
+Evaluation is defined in Figures~\ref{fig:expr-eval}
+and~\ref{fig:match-eval} by two mutually recursive judgments:
+\begin{description}
+  \item[$\Gamma;\lset;e \expev \Delta;w$]  Evaluating 
+   expression $e$ from heap $\Gamma$ yields heap $\Delta$ and result $w$;
+  \item[$\Gamma;\lset;\argstack; m \matev \Delta;\matchresult$] 
+    Evaluating matching $m$ from heap $\Gamma$ and argument stack \argstack\
+    yields heap $\Delta$ and matching \matchresult.
+  \end{description}
+
+  In both judgments the set $\lset$ keeps track of variables under
+  evaluation and is used to ensure freshness of variables in the
+  \bigrule{Let} rule~\cite{sestof_1997}.
+
+  In the $\matev$ judgements the argument stack \argstack\ is
+  a sequence of variables representing the pending arguments
+  to be applied to the matching expression.
+
+\paragraph{Remarks about rules for  expressions (Figure~\ref{fig:expr-eval}).}
+  
+  Rule~\bigrule{Whnf} terminates evaluation immediately when we reach a whnf,
+  namely a non-saturated matching abstraction or a constructor.
+  
+  Rule~\bigrule{Sat} applies to saturated matching abstractions;
+  if the matching evaluation succeeds then
+  we proceed to evaluate the expression returned.
+    
+  Rule~\bigrule{Var} forces evaluation of an expression in the heap; as in
+  Launchbury and Sestof's semantics, we remove the entry
+  from the heap  while performing the evaluation (``black-holing'')
+  and update the heap with the result afterwards.
+    
+  Rule~\bigrule{App} first evaluates the function to
+  obtain a matching abstraction and then evaluates
+  the the argument application.
+    
+  Rule~\bigrule{Let} is identical to the one by Sestof: it allocates
+  new expressions in the heap (taking care of renaming) and
+  continues evaluating the body of the let expression.
+  
+  \paragraph{Remarks about rules for matchings (Figure~\ref{fig:match-eval}).}
+
+  Rule~\bigrule{Return} terminates evaluation sucessfully
+  when we reach a return expression.
+  The notation $A\amatcharg e$ represents the nested applications
+  of  left over arguments on the stack $A$ to the expression $e$. The definition is:
+  \begin{align*}
+  \matcharg{[\,]}{e} &= e \\
+  \matcharg{(y:ys)}{e}  &= \matcharg{ys}{(e~y)}
+  \end{align*}
+
+  Rule~\bigrule{Fail} terminates evaluation unsuccessfully when
+  we reach the match failure \matchfail.
+
+  Rule~\bigrule{Arg} pushes an argument onto the stack and carries
+  on evaluation.
+  
+  Rule~\bigrule{Bind} binds a variable pattern to
+  an argument on the stack. This simply a renaming of the pattern
+  variable $x$ to the heap variable $y$.
+  
+  Rules~\bigrule{Cons1} and \bigrule{Cons2} handle the successful
+  and unsucessful matching of a constructor pattern; in the later
+  case the matching evaluation returns \matchfail.  Note also that
+  \bigrule{Cons1} continues the matching of sub-patterns in left to
+  right order.
+  
+
+  Rules~\bigrule{Alt1} and \bigrule{Alt2} handle progress and failure
+  in alternative matchings.
+  Note that in \bigrule{Alt2} evaluation continues with the updated
+  heap $\Delta$ because the evaluations effects of the failed match
+  need to be shared when evaluating $m_2$.
+  Note also that the argument stack is shared between $m_1$ and $m_2$
+  (implementing the distributivity of $\amatcharg$ against $\mid$).
+    
+    
+\subsection{Extension for pattern guards}\label{sec:pattern-guards}
+
+The syntax of matchings in~Figure~\ref{fig:syntax-normalized} and
+evaluation rules of Figure~\ref{fig:match-eval} deal only with
+argument matches of the form $\matcharg{y}{m}$.  This prevents
+encoding any interesting boolean and pattern guards: we cannot use
+a let binding to name the guard expression because it will
+typically refer to variables bound by the patterns.
+
+% To encode boolean guards and pattern guards
+% it is then necessary to use a let expression to name the scrutinee.
+% For example, the translation of the \emph{nodups} function of
+% Section~\ref{sec:examples} becomes:
+% \[
+%   nodups = \lambda
+%   \begin{array}[t]{l}
+%     (x:xs) \amatchpat
+%     xs \amatcharg (y:xs') \amatchpat \\
+%     \qquad \lreturn \alet ~t = (x==y) \\
+%     \qquad\quad ~\ain~ \lambda (t \amatcharg \textsf{True} \amatchpat \matchreturn{nodups~ xs})\rreturn  \\
+%     \amatchalt \ldots
+%   \end{array}
+% \]
+% Operationally we can see that this will build a heap expression for $t$ that is
+% immediately evaluated and never needed again.
+
+The solution is to introduce pattern guards explicitly in the
+normalized syntax for \lambdaPMC:
+\[
+  \begin{array}{llll}
+  m &::=& \ldots & \text{(as in Figure~\ref{fig:syntax-normalized})} \\
+    & | & \matcharg{e}{\matchpat{\constr{c}{\vec{p}}}{m}} & \text{pattern guards}
+                                                            \end {array}
+                                                          \]
+
+The extra matching rules to deal with these special cases are  analogous to \bigrule{Cons1} and \bigrule{Cons2}:
+\begin{gather*}
+  \prooftree
+    \begin{array}{l}
+    \Gamma;\lset; e\expev \Delta; \constr{c}{y_1,\ldots,y_n} \\
+    \Delta;\lset;\argstack; \matcharg{y_1}{p_1} \amatchpat \ldots \amatchpat \matcharg{y_n}{p_n} \amatchpat m
+      \matev \Theta;\matchresult
+    \end{array}
+    \justifies
+    \Gamma; \lset; \argstack; \matcharg{e}{\matchpat{\constr{c}{p_1,\ldots,p_n}}{m}}
+    \matev \Theta;\matchresult
+    \using{\bigrule{Guard1}}
+    \endprooftree \\[3ex]
+    %
+    %
+    \prooftree
+    \Gamma;\lset; e\expev \Delta; \constr{c'}{y_1,\ldots, y_k} \qquad
+    c \neq c' \lor n \neq k
+    \justifies
+    \Gamma; \lset; \argstack; \matcharg{e}{\matchpat{\constr{c}{p_1,\ldots, p_n}}{m}}
+    \matev \Delta; \matchfail
+    \using{\bigrule{Guard2}}
+    \endprooftree
+  \end{gather*}
+
+  Note that if the $e$ is a single variable then these rules
+  produce the same effect as the combination of \bigrule{Arg} 
+  with \bigrule{Cons1} or \bigrule{Cons2}.
+
+
+    
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

@@ -1,0 +1,228 @@
+\section{Syntax}
+
+\begin{figure}
+  \[
+    \begin{array}{rcll}
+      e & &     \text{expressions} \\
+      e & ::= &  x  & \text{variable} \\
+      & | &  \app{e_1}{e_2} & \text{function application} \\
+      & | & \abstr{m} & \text{matching abstraction} \\
+      & | &  \constr{c}{e_1,\ldots,e_n} & \text{constructor application} \\
+      & | & \llet{\{x_i=e_i\}}{e'} & \text{let(rec) bindings} \\[2ex]
+      %%
+      m &  & \text{matchings} \\
+      m & ::= & \matchreturn{e} & \text{return expression}\\
+      & | & \matchfail & \text{failure} \\
+      & | & \matchpat{p}{m} & \text{match pattern} \\
+      & | & \matcharg{e}{m} & \text{apply argument}\\
+      & | & \matchalt{m_1}{m_2} & \text{alternative}\\[2ex]
+      %%
+      p & & \text{patterns}\\
+      p & ::= & x & \text{variable pattern} \\
+      & | & \constr{c}{p_1,\ldots,p_n} & \text{constructor pattern} 
+  \end{array}
+\]
+\caption{Syntax of \lambdaPMC.}\label{fig:syntax}
+\end{figure}
+
+\subsection{Expressions and matchings}
+Figure~\ref{fig:syntax} defines \lambdaPMC, a small functional
+language with syntatical categories for \emph{expressions},
+\emph{matchings} and \emph{patterns}.  Matchings and patterns are
+based on the PMC calculus of Kahl~\cite{kahl_2004}.
+The only extension is the \llet{\ldots}{\ldots} construct
+for defining (possibly) recursive local bindings.
+
+Matchings can be a return expression $\matchreturn{e}$ (signaling a
+successful match), the matching failure \matchfail,
+a pattern match $\matchpat{p}{m}$ (expecting a
+single argument that must match pattern $p$), an argument application
+$\matcharg{e}{m}$, or the choice \matchalt{m_1}{m_2} between two
+matchings.  Note that patterns $p$ can be nested; for example
+\verb|(x:(y:ys))| is a valid pattern (using infix notation for the
+list constructor).
+
+Lambda abstraction is subsumed by matching abstraction:
+$\lambda x.\, e$ is equivalent to
+$\lambda (\matchpat{x}{\matchreturn{e}})$.  Case expressions are also
+subsumed by matching abstraction; the expression
+\[
+  \textsf{case}~ e_0 ~\textsf{of}~\{p_1\to e_1;\ldots; p_n\to e_n\}
+\]
+is equivalent to
+\[
+  \lambda(\matcharg{e_0}{(\matchpat{p_1}{e_1}\mid\ldots \mid\matchpat{p_n}{e_n})}) \ .
+\]
+%
+Note that matchings in \lambdaPMC\ allow both patterns and
+applications, so they may represent arbitrary expressions
+and not just lambda abstractions.  
+
+
+\subsection{Reduction rules}
+Following~\cite{kahl_2004} we review the semantics of pattern matching
+calculus as two reduction relations, namely, $\expred$ between
+expressions and $\matred$ between matchings. 
+
+The first two rules state that failure is the left unit for
+$\amatchalt$ while return is the left zero:
+\begin{gather}
+  \matchalt{\matchfail}{m} \matred m \tag{$\matchfail\amatchalt$}  \\
+  \matchalt{\matchreturn{e}}{m} \matred \matchreturn{e} \tag{$\matchreturn{}\amatchalt$}
+\end{gather}
+
+The next rule states that matching abstraction built from return expressions
+reduce to the underlying expression:
+\begin{equation}
+  \lambda \matchreturn{e} \expred e  \tag{$\lambda\matchreturn{}$} 
+\end{equation}
+
+Unlike~\cite{kahl_2004}, we do not have a reduction rule for $\lambda \matchfail$
+because we do not have an ``empty expression'' corresponding to
+matching failure. 
+
+Application to a matching abstraction reduces to
+argument application inside the matching.
+Dually, argument application to a return expression reduces
+to application in the expression.
+\begin{gather}
+  (\lambda m)~ a \expred \lambda(\matcharg{a}{m}) \tag{$\lambda @$}\\
+  \matcharg{a}{\matchreturn{e}} \matred \matchreturn{e~a} \tag{$\amatcharg\matchreturn{}$} 
+\end{gather}
+
+The following rule propagates a matching failure through an argument supply.
+\begin{equation}
+  \matcharg{e}{\matchfail} \matred \matchfail \tag{$\amatcharg\matchfail$}
+\end{equation}
+
+Next, argument suply distributes through alternatives:
+\begin{equation}
+  \matcharg{e}{(\matchalt{m_1}{m_2})} \matred
+  \matchalt{(\matcharg{e}{m_1})}{(\matcharg{e}{m_2})} \tag{$\amatcharg\amatchalt$}
+\end{equation}
+
+The following rules handle the supply of arguments to patterns:
+\begin{gather}
+  \matcharg{e}{\matchpat{x}{m}} \matred m[e/x] \tag{$\amatcharg x$}\\
+  \begin{split}
+      \matcharg{\constr{c}{e_1,\ldots,e_n}}{&\matchpat{\constr{c}{p_1,\ldots,p_n}}{m}}
+      \matred \\
+      &e_1 \amatcharg p_1 \amatchpat \ldots \amatchpat e_n \amatcharg p_n \amatchpat m
+    \end{split} \tag{$c\amatcharg c$}
+  \\
+  \matcharg{\constr{c'}{e_1,\ldots,e_k}}{\matchpat{\constr{c}{p_1,\ldots,p_n}}{m}}
+  \matred
+  \matchfail \tag{$c\amatcharg c'$} 
+\end{gather}
+In the last rule we assume $c\neq c'$.
+
+
+\subsection{Examples}\label{sec:examples}
+
+We will present some examples of the translation of Haskell definitions
+into \lambdaPMC.  The emphasis is on illustrating the correspondance
+between the Haskell source and the translated notation.
+
+Consider the following definition of the
+\emph{zipWith} that combines two lists using a function argument:
+%
+\begin{verbatim}
+zipWith f (x:xs) (y:ys) = f x y : zipWith f xs ys
+zipWith f xs'    ys'    = []
+\end{verbatim}
+%
+This can be translated directly to \lambdaPMC:
+%
+\[
+  zipWith = \lambda 
+  \!\!\begin{array}[t]{l}
+    (f \amatchpat (x:xs) \amatchpat (y:ys) \amatchpat \matchreturn{f~x~y : zipWith~ f~ xs~ ys}  \\
+    \amatchalt f \amatchpat xs' \amatchpat ys' \amatchpat \matchreturn{[\,]})
+  \end{array}
+\]
+%
+The function argument is handled identically in both branches, so we
+could factor it out:
+ \[
+   zipWith = \lambda (f \amatchpat 
+   \!\!\begin{array}[t]{l}
+     ((x:xs) \amatchpat (y:ys) \amatchpat \matchreturn{f~ x~ y : zipWith~f~xs~ys}  \\
+     \amatchalt  xs' \amatchpat ys' \amatchpat \matchreturn{[\,]}))
+   \end{array}
+ \]
+
+
+Next, consider a function \emph{nodups} which removes identical contiguous elements
+from a list; this illustrates the translation of 
+\emph{as-patterns} and \emph{boolean guards}:
+%
+\begin{verbatim}
+nodups (x:xs@(y:xs')) | x==y = nodups xs
+nodups (x:xs)                = x:nodups xs
+nodups [] = []
+\end{verbatim}
+%
+This can be translated to \lambdaPMC\
+as a matching abstraction with three alternatives;
+notice the use of a pattern argument $(x==y)$ to encode the
+boolean guard~\cite{kahl_2004}:
+\[
+  nodups = \lambda
+  \!\!\begin{array}[t]{l}
+    ((x:xs) \amatchpat
+    xs \amatcharg (y:xs') \amatchpat \\
+     \qquad\qquad (x==y) \amatcharg \textsf{True} \amatchpat \matchreturn{nodups~ xs}  \\
+    \amatchalt (x:xs) \amatchpat  \matchreturn{x: nodups~xs} \\
+    \amatchalt [\,] \amatchpat \matchreturn{[\,]})
+  \end{array}
+\]
+
+The translation of boolean generalizes
+for arbitrary \emph{pattern guards}; for example:
+\begin{verbatim}
+addLookup env v1 v2 
+  | Just r1 <- lookup env v1
+  , Just r2 <- lookup env v2 = r1 + r2
+\end{verbatim}
+%
+translates as:
+%%
+\[
+  addLookup = \lambda \!\!\begin{array}[t]{l}
+                     (env \amatchpat v1 \amatchpat v2 \amatchpat \\
+                     lookup~ env~ v1 \amatcharg Just(r1) \amatchpat \\
+                     lookup~ env~ v2 \amatcharg Just(r2) \amatchpat  \matchreturn {r1 + r2})
+                     \end{array}
+\]
+
+Finally, the GHC extensions \emph{LambdaCase} and
+\emph{LambdaCases}~\cite{ghc_guide_lambda_case} can be trivally
+encoded as abstraction matchings; for example
+\begin{verbatim}
+sign = \case x | x>0 -> 1
+               | x==0 -> 0
+               | otherwise -> -1
+\end{verbatim}
+translates directly to:
+\[ sign = \lambda (x \amatchpat \!\!\begin{array}[t]{l}
+  ((x>0) \amatcharg  \textsf{True} \amatchpat \matchreturn{1} \\
+  ~|~ (x==0)\amatcharg \textsf{True} \amatchpat \matchreturn{0}\\
+  ~|~ \textsf{True} \amatcharg \textsf{True} \amatchpat  \matchreturn{-1} ))
+ \end{array}    
+\]
+%
+We could also avoid the trival guard in the last alternative:
+%
+\[ sign = \lambda (x \amatchpat \!\!\begin{array}[t]{l}
+  ((x>0) \amatcharg  \textsf{True} \amatchpat \matchreturn{1} \\
+  ~|~ (x==0)\amatcharg \textsf{True} \amatchpat \matchreturn{0}\\
+  ~|~  \matchreturn{-1} ))
+ \end{array}    
+\]
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

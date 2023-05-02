@@ -1,0 +1,66 @@
+\section{Introduction}
+
+This paper presents the derivation of an abstract machine for \lambdaPMC, a small
+lazy functional language based on the pattern matching calculus
+of Kahl~\cite{kahl_2004}.
+
+Classical presentations of pattern matching in abstract machines for
+functional languages define the operational semantics by translation
+a source language such as Haskell
+into simple case expressions~\cite{spj_1987_chap5,jones_1992}. For
+example, consider the following Haskell function that checks whether a
+list is ``short'':
+\begin{verbatim}
+isShort (x:y:ys) = False
+isShort ys       = True
+\end{verbatim}
+The translation into nested case expressions is:
+\begin{verbatim}
+isShort xs = case xs of
+                (x:xs') -> case xs' of
+                              (y:ys) -> False
+                              [] -> True
+                [] -> True
+\end{verbatim}
+Complex patterns such as \verb|(x:y:ys)| must be translated into 
+nested case expressions with simple patterns and
+matches are made complete by introducing missing constructors.
+The translation is non-local: some optimizations may be 
+necessary to avoid duplicating work~\cite{spj_1987_chap5}.
+This is complicated further by extra features
+such as \emph{pattern guards}~\cite{haskell_2010_report}.
+
+By contrast, the translation of \textit{isShort} into \lambdaPMC\ is much more
+straightforward:
+\[
+  isShort = \lambda (\matchpat{(x:y:ys)}{\matchreturn{\textsf{False}}} \mid
+                     \matchpat{ys}{\matchreturn{\textsf{True}}})
+\]
+Compared to the version with case expressions, the \lambdaPMC\ translation
+preserves a closer relation to the original source program: each
+equation corresponds to one alternative in a \emph{matching
+  abstraction} and nested patterns are preserved. 
+
+The evaluation semantics for \lambdaPMC\ that will be presented in
+Sections~\ref{sec:bigstep} and~\ref{sec:smallstep} treats matching
+failure explicitly instead of implicitly thought nested case
+expressions. Furthermore, \lambdaPMC\ can easily handle
+other extensions, such as as-patterns, boolean and
+pattern guards and lambda cases.
+
+Our objective is not a more efficient implementation but rather
+to provide an operational model for lazy functional
+programs where pattern matching can be directly related to the source
+code as written by the programmer. This can be particularly useful to
+explain intensional properties, such as the interaction between
+pattern matching and evaluation demand.
+% For example: evaluation \verb|isShort xs| forces
+% only evaluation of two list constructors of \verb|xs|, so it will
+% terminate even for infinite lists.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
