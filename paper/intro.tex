@@ -48,15 +48,22 @@ expressions. Furthermore, \lambdaPMC\ can easily handle
 other extensions, such as as-patterns, boolean and
 pattern guards and lambda cases.
 
-Our objective is not a more efficient implementation but rather
-to provide an operational model for lazy functional
-programs where pattern matching can be directly related to the source
-code as written by the programmer. This can be particularly useful to
-explain intensional properties, such as the interaction between
-pattern matching and evaluation demand.
-% For example: evaluation \verb|isShort xs| forces
-% only evaluation of two list constructors of \verb|xs|, so it will
-% terminate even for infinite lists.
+The contributions of this paper are:
+\begin{enumerate}
+\item a bigstep operational semantics for lazy functional programs where pattern
+  matching is directly related to the source code as written by
+  the programmer;
+\item an abstract machine implementing this bigstep semamantics;
+\item a proof sketch of correctness of the abstract machine against
+  the bigstep semantics.
+\end{enumerate}
+
+% Our objective is not a more efficient implementation but rather
+% to provide an operational model for lazy functional
+% programs where pattern matching can be directly related to the source
+% code as written by the programmer. This can be particularly useful to
+% explain intensional properties, such as the interaction between
+% pattern matching and evaluation demand.
 
 
 

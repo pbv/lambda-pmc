@@ -2,21 +2,30 @@
 \section{Related work}
 
 Chapter 4 of the classic textbook by Peyton Jones~\cite{spj_1987}
-defines lambda abstractions with patterns $\lambda p.E$ together with an
-alternative operator and a FAIL expression; the semantics for
-matching is denotational and serves as the basis for defining
-the correctness of compilation into case expressions.
+defines lambda abstractions with patterns $\lambda p.E$ together with
+an alternative operator and a FAIL expression; the semantics for
+matching is denotational and serves as the basis for defining the
+correctness of compilation into case expressions.
 
-Kahl defines a pattern matching calculus and proved
-its confluence~\cite{kahl_2004}. This work forms the basis for our \lambdaPMC\
-language and the two semantics. The principle difference is that
-we do not consider the ``empty expression'' corresponding
-to a pattern matching failure $\lambda\matchfail$;
-there is simply no reduction in such cases.
+Kahl defines a pattern matching calculus and proved its
+confluence~\cite{kahl_2004}. This work forms the basis for our
+\lambdaPMC\ language and the two semantics. The principle difference
+is that we do not consider the ``empty expression'' corresponding to a
+pattern matching failure $\lambda\matchfail$; there is simply no
+reduction in such cases.
 
 Klop et.\@ al.\@~\cite{KLOP200816} re-visit the lambda calculus with
-patterns from a the point of view of combinatory reduction systems
-(CRSs).
+patterns of Peyton~Jones from the point of view of combinatory
+reduction systems (CRSs).
+
+A number of researchers have looked at restricted forms of pattern
+calculi.  Bucciarelli et.\@ al.\@~\cite{bucciarelli_et_al_2015} have
+looked at characterizing observability for pattern matching restricted
+to pairs using a type system based on intersection types.  Inspired by
+this work, Alves et.\@ al.\@~\cite{alves_et_al_2020} have defined a type system based on
+non-idempotent intersection types to characterize bounds on the length
+of normalization sequences for such pattern
+calculi.
 
 
 %%% Local Variables:
