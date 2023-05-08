@@ -1,22 +1,26 @@
 
-\section{Related work}
+\section{Related work}\label{sec:related}
 
 Chapter 4 of the classic textbook by Peyton Jones~\cite{spj_1987}
-defines lambda abstractions with patterns $\lambda p.E$ together with
-an alternative operator and a FAIL expression; the semantics for
-matching is denotational and serves as the basis for defining the
-correctness of compilation into case expressions.
+defines the semantics of pattern matching using lambda abstractions
+with patterns $\lambda p.E$ together with a \textsf{FAIL} expression
+and a ``fatbar'' operator. This semantics is
+denotational and serves primarly as the basis for defining the
+correctness of compilation into case expressions presented in
+the subsequent chapter.
 
 Kahl defines a pattern matching calculus and proved its
 confluence~\cite{kahl_2004}. This work forms the basis for our
 \lambdaPMC\ language and the two semantics. The principle difference
 is that we do not consider the ``empty expression'' corresponding to a
 pattern matching failure $\lambda\matchfail$; there is simply no
-reduction in such cases.
+evaluation in such cases.  Our notion of weak normal form for matching
+abstractions is also novel. % and inspired by the STG machine~\cite{jones_1992}.
 
 Klop et.\@ al.\@~\cite{KLOP200816} re-visit the lambda calculus with
-patterns of Peyton~Jones from the point of view of combinatory
-reduction systems (CRSs).
+patterns of Peyton~Jones and situates it in the context of more
+general combinatory reduction systems (CRSs) and higher-order
+rewriting systems.
 
 A number of researchers have looked at restricted forms of pattern
 calculi.  Bucciarelli et.\@ al.\@~\cite{bucciarelli_et_al_2015} have

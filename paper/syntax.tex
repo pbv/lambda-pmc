@@ -1,4 +1,4 @@
-\section{Syntax}
+\section{Syntax}\label{sec:syntax}
 
 \begin{figure}
   \[
@@ -14,7 +14,7 @@
       m & ::= & \matchreturn{e} & \text{return expression}\\
       & | & \matchfail & \text{failure} \\
       & | & \matchpat{p}{m} & \text{match pattern} \\
-      & | & \matcharg{e}{m} & \text{apply argument}\\
+      & | & \matcharg{e}{m} & \text{argument supply}\\
       & | & \matchalt{m_1}{m_2} & \text{alternative}\\[2ex]
       %%
       p & & \text{patterns}\\
@@ -59,12 +59,18 @@ applications, so they may represent arbitrary expressions
 and not just lambda abstractions.  
 
 
-\subsection{Reduction rules}\label{sec:reduction}
+\subsection{Reduction relations}\label{sec:reduction}
+%
 Following~\cite{kahl_2004} we review the pattern matching calculus as
-two reduction relations, namely, $\expred$ between expressions and
-$\matred$ between matchings. We leave the definition of an
-evaluation strategy and normal forms to
-Section~\ref{sec:bigstep} so this does not yet define a complete semantics.
+two \emph{redex} reduction relations, namely, $\expred$ between expressions and
+$\matred$ between matchings. We leave the definition of an evaluation
+strategy and normal forms to Section~\ref{sec:bigstep} so this does
+not yet define a complete semantics.
+
+We use the notation $m[e'/x]$ for the substitution of free occurrences
+of variable $x$ for an expression $e'$ in the matching $m$.
+The definitions of free occurences and substitution are standard and
+we therefore omit them.
 
 The first two rules state that failure is the left unit for
 $\amatchalt$ while return is the left zero:
@@ -73,20 +79,19 @@ $\amatchalt$ while return is the left zero:
   \matchalt{\matchreturn{e}}{m} \matred \matchreturn{e} \tag{$\matchreturn{}\amatchalt$}
 \end{gather}
 
-The next rule states that matching abstraction built from return expressions
-reduce to the underlying expression:
+The next rule states that matching abstraction built from return
+expressions reduce to the underlying expression:
 \begin{equation}
   \lambda \matchreturn{e} \expred e  \tag{$\lambda\matchreturn{}$} 
 \end{equation}
 
-Unlike~\cite{kahl_2004}, we do not have a reduction rule for $\lambda \matchfail$
-because we do not have an ``empty expression'' corresponding to
-matching failure. 
+Unlike~\cite{kahl_2004}, we do not have a reduction rule for
+$\lambda \matchfail$ because we do not have an ``empty expression''
+corresponding to matching failure.
 
-Application to a matching abstraction reduces to
-argument application inside the matching.
-Dually, argument application to a return expression reduces
-to application in the expression.
+Application of a matching abstraction reduces to argument supply to
+the matching.  Dually, argument supply to a return expression reduces
+to application of the expression.
 \begin{gather}
   (\lambda m)~ a \expred \lambda(\matcharg{a}{m}) \tag{$\lambda @$}\\
   \matcharg{a}{\matchreturn{e}} \matred \matchreturn{e~a} \tag{$\amatcharg\matchreturn{}$} 
@@ -97,13 +102,13 @@ The following rule propagates a matching failure through an argument supply.
   \matcharg{e}{\matchfail} \matred \matchfail \tag{$\amatcharg\matchfail$}
 \end{equation}
 
-Next, argument suply distributes through alternatives:
+Next, argument supply distributes through alternatives:
 \begin{equation}
   \matcharg{e}{(\matchalt{m_1}{m_2})} \matred
   \matchalt{(\matcharg{e}{m_1})}{(\matcharg{e}{m_2})} \tag{$\amatcharg\amatchalt$}
 \end{equation}
 
-The following rules handle the supply of arguments to patterns:
+The following rules handle argument supply to patterns:
 \begin{gather}
   \matcharg{e}{\matchpat{x}{m}} \matred m[e/x] \tag{$\amatcharg x$}\\
   \begin{split}
@@ -120,13 +125,13 @@ In the last rule we assume $c\neq c'$.
 
 
 \subsection{Examples}\label{sec:examples}
+%
+We will present some examples of the translation of Haskell
+definitions into \lambdaPMC.  The emphasis is on illustrating the
+correspondance between the Haskell source and the translated notation.
 
-We will present some examples of the translation of Haskell definitions
-into \lambdaPMC.  The emphasis is on illustrating the correspondance
-between the Haskell source and the translated notation.
-
-Consider the following definition of the
-\emph{zipWith} that combines two lists using a function argument:
+Consider the following definition of the \emph{zipWith} function that
+combines two lists using a functional argument:
 %
 \begin{verbatim}
 zipWith f (x:xs) (y:ys) = f x y : zipWith f xs ys
@@ -152,7 +157,6 @@ could factor it out:
      \amatchalt  xs' \amatchpat ys' \amatchpat \matchreturn{[\,]}))
    \end{array}
  \]
-
 
 Next, consider a function \emph{nodups} which removes identical contiguous elements
 from a list; this illustrates the translation of 
@@ -197,7 +201,7 @@ translates as:
                      \end{array}
 \]
 
-Finally, the GHC extensions \emph{LambdaCase} and
+Finaly, the GHC extensions \emph{LambdaCase} and
 \emph{LambdaCases}~\cite{ghc_guide_lambda_case} can be trivally
 encoded as abstraction matchings; for example
 \begin{verbatim}
@@ -222,7 +226,24 @@ We could also avoid the trival guard in the last alternative:
  \end{array}    
 \]
 
+\endinput
 
+% Finally, in Haskell we can make a pattern \emph{irrefutable} by prefixing it
+% with a single tilde sign (\texttt{\~{}}). For example, the definition
+% \begin{verbatim}
+% f ~(x:xs) = rhs
+% \end{verbatim}
+% then matching will be delayed until variables $x$ or $xs$ are needed
+% in $rhs$.  We can encode irrefutable patterns in \lambdaPMC\ as pure
+% lambda abstractions applied to saturated patterns i.e.\@ essentially
+% the same way as specified in the Haskell report:
+% \[
+%   f = \lambda(v \amatchpat
+%   (\lambda(v \amatchpat {(x:xs)} \amatchpat \matchreturn{x})) \amatcharg
+%   {x}  \amatchpat
+%   \lambda(v \amatchpat {(x:xs)} \amatchpat \matchreturn{xs}) \amatcharg
+%   {xs} \amatchpat \matchreturn {rhs})
+% \]
 
 %%% Local Variables:
 %%% mode: latex

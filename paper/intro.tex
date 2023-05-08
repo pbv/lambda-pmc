@@ -4,17 +4,16 @@ This paper presents the derivation of an abstract machine for \lambdaPMC, a smal
 lazy functional language based on the pattern matching calculus
 of Kahl~\cite{kahl_2004}.
 
-Classical presentations of pattern matching in abstract machines for
-functional languages define the operational semantics by translation
-a source language such as Haskell
-into simple case expressions~\cite{spj_1987,jones_1992}. For
+Classical presentations of pattern matching in functional langugaes
+define the operational semantics by translation
+into case expressions with simple patterns~\cite{spj_1987,jones_1992}. For
 example, consider the following Haskell function that checks whether a
 list is ``short'':
 \begin{verbatim}
 isShort (x:y:ys) = False
 isShort ys       = True
 \end{verbatim}
-The translation into nested case expressions is:
+The translation into simple case expressions is:
 \begin{verbatim}
 isShort xs = case xs of
                 (x:xs') -> case xs' of
@@ -22,41 +21,72 @@ isShort xs = case xs of
                               [] -> True
                 [] -> True
 \end{verbatim}
-Complex patterns such as \verb|(x:y:ys)| must be translated into 
-nested case expressions with simple patterns and
-matches are made complete by introducing missing constructors.
-The translation is non-local: some optimizations may be 
-necessary to avoid duplicating work~\cite{spj_1987}.
-This is complicated further by extra features
-such as \emph{pattern guards}~\cite{haskell_2010_report}.
+Nested patterns such as \verb|(x:y:ys)| must be translated into nested
+case expressions with simple patterns and matches are made complete by
+introducing missing constructors.  
 
-By contrast, the translation of \textit{isShort} into \lambdaPMC\ is much more
+By contrast, the translation of \textit{isShort} into \lambdaPMC\ is
 straightforward:
-\[
-  isShort = \lambda (\matchpat{(x:y:ys)}{\matchreturn{\textsf{False}}} \mid
-                     \matchpat{ys}{\matchreturn{\textsf{True}}})
+\[ 
+  \textit{isShort} = \lambda (\matchpat{(x:y:ys)}{\matchreturn{\textsf{False}}} \mid
+  \matchpat{ys}{\matchreturn{\textsf{True}}}) 
 \]
 Compared to the version with case expressions, the \lambdaPMC\ translation
 preserves a closer relation to the original source program: each
 equation corresponds to one alternative in a \emph{matching
   abstraction} and nested patterns are preserved. 
 
-The evaluation semantics for \lambdaPMC\ that will be presented in
-Sections~\ref{sec:bigstep} and~\ref{sec:smallstep} treats matching
-failure explicitly instead of implicitly thought nested case
-expressions. Furthermore, \lambdaPMC\ can easily handle
-other extensions, such as as-patterns, boolean and
+Furthermore, translation into simple cases may require some
+optimizations to avoid duplicating expressions whenever patterns
+overlap. Consider the following example from~\cite{spj_1987} (where
+$A$ and $B$ are some unspecified expressions):
+\begin{verbatim}
+unwiedly [] [] = A
+unwiedly xs ys = B xs ys
+\end{verbatim}
+The translation into simple cases duplicates the sub expression $B~ xs~ ys$:
+\begin{verbatim}
+unwiedly xs ys = case xs of
+                   [] -> case ys of
+                          [] -> A
+                          (y:ys') -> B xs ys
+                   (x:xs') -> B xs ys
+\end{verbatim}
+By contrast, the translation to \lambdaPMC\ preserves the single occurrence of
+the sub expression:
+\[
+  \textit{unwiedly} =
+  \lambda\!\! \begin{array}[t]{l}
+             (\matchpat{[\,]}{\matchpat{[\,]}{\matchreturn{A}}} \\
+             \mid \matchpat{xs}{\matchpat{ys}}{\matchreturn{B~xs~ys}})
+             \end{array}
+\]
+Furthermore, \lambdaPMC\ can easily handle
+other extensions to pattern matching, such as as-patterns, boolean and
 pattern guards and lambda cases.
 
-The contributions of this paper are:
+The contributions presented in this paper are:
 \begin{enumerate}
-\item a bigstep operational semantics for lazy functional programs where pattern
-  matching is directly related to the source code as written by
-  the programmer;
-\item an abstract machine implementing this bigstep semamantics;
+\item the definition of \lambdaPMC;
+\item a big-step operational semantics for \lambdaPMC;
+\item an abstract machine (i.e.\@ a small-step semantics) for \lambdaPMC;
 \item a proof sketch of correctness of the abstract machine against
-  the bigstep semantics.
+  the big-step semantics.
 \end{enumerate}
+
+The remaining of this paper is structured as follows:
+Section~\ref{sec:syntax} defines the syntax of \lambdaPMC\ and reviews
+the reduction rules of the pattern matching
+calculus. Section~\ref{sec:bigstep} defines a notion of weak normal
+form and presents a big-step semantics for language.
+Section~\ref{sec:smallstep} defines configurations and small-step
+reduction rules of an abstract machine for \lambdaPMC\ and presents a
+proof sketch for correctness with respect to the big-step semantics.
+Section~\ref{sec:experimental} presents some experimental results from a
+prototype implementation.  Section~\ref{sec:related} discusses related
+work. Finally, Section~\ref{sec:conclusion} highlights
+directions for further work.
+
 
 % Our objective is not a more efficient implementation but rather
 % to provide an operational model for lazy functional

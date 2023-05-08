@@ -19,7 +19,7 @@ lazy evaluation~\cite{launchbury_1993}.
       m & ::= & \matchreturn{e} & \text{return expression}\\
       & | & \matchfail & \text{failure} \\
       & | & \matchpat{p}{m} & \text{match pattern} \\
-      & | & \matcharg{y}{m} & \text{apply argument}\\
+      & | & \matcharg{y}{m} & \text{argument supply}\\
       & | & \matchalt{m_1}{m_2} & \text{alternative}\\[2ex]
       %%
       p & & \text{patterns (as before)}
@@ -32,7 +32,8 @@ lazy evaluation~\cite{launchbury_1993}.
 As in Launchbury's semantics, we will restrict arguments of
 applications to be variables; complex arguments must be explicitly
 named using let bindings.  This ensures that we can update a result
-after evaluation and avoid work duplication.
+after evaluation and properly implemement call-by-need (i.e. lazy)
+evaluation.
 
 Figure~\ref{fig:syntax-normalized} defines the syntax for normalized
 \lambdaPMC. In the remaining of this paper we assume all expressions
@@ -76,11 +77,14 @@ If $\arity{m}>0$ then $m$ expects at least one argument, i.e.\@
 behaves like a lambda abstraction.  If $\arity m= 0$ then $m$ is
 \emph{satured} (i.e.\@ fully applied) and therefore \emph{not} a whnf.
 
-This definition of weak normal forms implies that a partially applied
-matching will not be evaluated e.g.\@
-$\lambda(\matcharg{a}{\matchpat{x}{\matchpat{y}{\matchreturn{e}}}})$
+This definition of weak normal forms implies that partially applied
+matchings will not be evaluated e.g.\@
+$\lambda(\matcharg{z}{\matchpat{x}{\matchpat{y}{\matchreturn{e}}}})$
 is in whnf. This is similar to a partial application in an abstract
-machine with multi-argument functions e.g.\@ the STG~\cite{jones_1992}.
+machine with multi-argument functions e.g.\@ the
+STG~\cite{jones_1992}.  However, in our case this is done not for
+efficency but rather to simplify evaluation by ensuring that we only
+ever evaluate saturated matchings.
 
 
 \begin{figure}
@@ -126,7 +130,7 @@ machine with multi-argument functions e.g.\@ the STG~\cite{jones_1992}.
     \Gamma;\lset; \llet{\{x_i=e_i\}}{e'} \expev \Delta;w
     \using{\bigrule{Let}} 
     \endprooftree \\
-    \text{where}~\loc_i ~\text{are fresh wrt}~\lset, \Gamma,e_i,e' \\
+    \text{where}~\loc_i ~\text{are fresh}  \\%% ~\lset, \Gamma, \llet{\{x_i=e_i\}}{e'} \\
     \widehat{e}_i = e_i[\loc_1/x_1,\ldots,\loc_n/x_n], \\
     \widehat{e}' = e' [\loc_1/x_1,\ldots,\loc_n/x_n]
   \end{gather*}
@@ -222,13 +226,18 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
     yields heap $\Delta$ and matching \matchresult.
   \end{description}
 
-  In both judgments the set $\lset$ keeps track of variables under
-  evaluation and is used to ensure freshness of variables in the
-  \bigrule{Let} rule~\cite{sestof_1997}.
-
   In the $\matev$ judgements the argument stack \argstack\ is
   a sequence of variables representing the pending arguments
   to be applied to the matching expression.
+
+  In both judgments the set $\lset$ keeps track of variables under
+  evaluation and is used to ensure freshness of variables in the
+  \bigrule{Let} rule~\cite{sestof_1997}.
+  \begin{definition}[Freshness condition]
+    A variable $y$ is fresh if it does not occur (free or bound) in
+    $L$, $\Gamma$ or $\llet{\{x_i=e_i\}}{e}$.
+  \end{definition}
+  
 
 \paragraph{Remarks about rules for  expressions (Figure~\ref{fig:expr-eval}).}
   

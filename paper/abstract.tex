@@ -3,14 +3,13 @@
   This paper presents the derivation of an abstract machine for
   \lambdaPMC, a small lazy functional language based on the pattern
   matching calculus of Kahl.  Classical presentations of pattern
-  matching in abstract machines for functional languages define the
-  operational semantics for a source language like Haskell
-  by translation into simple case expressions.
-  The translation is non-local, i.e.\@ some optimizations may be
-  necessary to avoid duplicating work.
-  By contrast, the translation of a language such as Haskell into
-  \lambdaPMC\ is much more straightforward, preserving a
-  one-to-one relation with the source language. 
+  matching in functional languages define the operational semantics by
+  translation into case expressions with simple patterns.  The
+  translation is non-local and some optimizations may be necessary
+  to avoid duplicating expressions.  By contrast, the translation of a
+  language such as Haskell into \lambdaPMC\ is much more
+  straightforward, preserving a one-to-one relation with the source
+  language.
   %Our objective is to provide an operational model for lazy functional
   %programs where pattern matching can be directly related to the source
   %code as written by the programmer.
