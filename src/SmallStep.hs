@@ -53,7 +53,7 @@ eval' (heap, E (EAbs m), stack)
 eval' (heap, E (EVar y), stack) = 
     case extract y heap of
         Nothing -> throwError UndefinedVariable
-        Just e -> return (heap, E e, (CUpd y) : stack)
+        Just e -> return (restrict y heap, E e, (CUpd y) : stack)
 
 --Update
 eval' (heap, E w, (CUpd y : stack))
