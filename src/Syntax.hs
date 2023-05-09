@@ -161,7 +161,7 @@ instance Show Control where
 
 
 showStep :: Configuration -> String
-showStep (h,c,s) = "& " ++ showHeap (Map.toList h) ++ " & " ++ show c ++ " & " ++ show s ++ "& () \\\\"
+showStep (h,c,s) = showHeap (Map.toList h) ++ " & " ++ show c ++ " & " ++ show s ++ "& () \\\\"
 
 showHeap [] = "\\Gamma"
 showHeap h = "\\{" ++(commas. map (\(a,b) -> "(" ++ a ++ "\\mapsto" ++ show b ++ ")")) h ++ "\\}"

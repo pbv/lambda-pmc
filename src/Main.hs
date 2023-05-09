@@ -32,9 +32,13 @@ startingEnv = Map.fromList
 -- Evaluators
 
 eval e = BigStep.eval e startingEnv
-run e = do
-    putStrLn $ "& \\Gamma &" ++ show e ++ "& [] & () \\\\"
-    mapM_ printConfig (SmallStep.run e startingEnv)
+run e = mapM_ printConfig (SmallStep.run e startingEnv)
+
+runLatex e = do
+    putStrLn "\\begin{figure*}\n\\[ \n\\begin{array}{llll}\n\\hline\n\\text{Heap} & \\text{Control} & \\text{RetStack} & \\text{rule} \\\\\n\\hline"
+    putStrLn $ "\\Gamma &" ++ show e ++ "& [] & () \\\\"
+    mapM_ return (SmallStep.run e startingEnv)
+    putStrLn "\\end{array}\n\\]\n\\end{figure*}"
 
 printConfig (h,c,s) = 
     putStr "Heap:\t" >> print (h Map.\\ startingEnv) 
