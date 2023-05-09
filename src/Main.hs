@@ -26,7 +26,7 @@ startingEnv = Map.fromList
     , ("isShort", isShortPMC)
     , ("zipWith", zipWithPMC)
     , ("foo", EAbs (MPat (PVar "x") (MRet (mkList "x" "empty")))) 
-    , ("res", EApp (EVar "foo") "1")
+    , ("fooRes", EApp (EAbs (MPat (PVar "x") (MRet (mkList "x" "empty")))) "1")
     ]
 
 -- Evaluators
@@ -47,7 +47,6 @@ mkPair x y  = ECons "()" [x, y]
 appZipWith f xs ys = (EApp (EApp (EApp zipWithPMC f) xs) ys)
 
 apply f e = ELet "res" e  (EApp f "res")
-apply' f e = ELet "result" e  (EApp f "result")
 
 apply2 f e1 e2 = 
     ELet "res" e1 
@@ -87,10 +86,10 @@ headPMC = EAbs (MPat (PCons ":" [PVar "x", PVar "xs"]) (MRet (EVar "x")))
 tailPMC = EAbs (MPat (PCons ":" [PVar "x", PVar "xs"]) (MRet (EVar "xs")))
 
 -- Example 1: isShort (foo True)
-example1 = apply isShortPMC (apply foo (ECons "True" []))
+example1 = apply isShortPMC (EApp foo "True")
     where foo = EAbs (MPat (PVar "x") (MRet (mkList "x" "empty"))) 
 
-example1NoLet = EApp isShortPMC "res"
+example1NoLet = EApp isShortPMC "fooRes"
 
 -- Example 2: zipWith mkPair [] (tail [])
 example2 = --apply3 zipWithPMC mkPairPMC (ECons ":" []) (apply tailPMC (ECons ":" []))
