@@ -41,12 +41,12 @@ optimizations to avoid duplicating expressions whenever patterns
 overlap. Consider the following example from~\cite{spj_1987} (where
 $A$ and $B$ are some unspecified expressions):
 \begin{verbatim}
-unwiedly [] [] = A
-unwiedly xs ys = B xs ys
+unwieldy [] [] = A
+unwieldy xs ys = B xs ys
 \end{verbatim}
 The translation into simple cases duplicates the sub expression $B~ xs~ ys$:
 \begin{verbatim}
-unwiedly xs ys = case xs of
+unwieldy xs ys = case xs of
                    [] -> case ys of
                           [] -> A
                           (y:ys') -> B xs ys
@@ -55,7 +55,7 @@ unwiedly xs ys = case xs of
 By contrast, the translation to \lambdaPMC\ preserves the single occurrence of
 the sub expression:
 \[
-  \textit{unwiedly} =
+  \textit{unwieldy} =
   \lambda\!\! \begin{array}[t]{l}
              (\matchpat{[\,]}{\matchpat{[\,]}{\matchreturn{A}}} \\
              \mid \matchpat{xs}{\matchpat{ys}}{\matchreturn{B~xs~ys}})
