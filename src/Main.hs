@@ -14,7 +14,7 @@ startingEnv = Map.fromList
     , ("2", ECons "2" [])
     , ("3", ECons "3" [])
     , ("4", ECons "4" [])
-    -- , ("list1", mkList "1" "empty")
+    , ("list1", mkList "1" "empty")
     -- , ("list2", mkList "2" "empty")
     -- , ("list3", mkList "3" "empty")
     -- , ("list4", mkList "4" "empty")
@@ -23,13 +23,18 @@ startingEnv = Map.fromList
     -- , ("list23", mkList "2" "list3")
     -- , ("list24", mkList "2" "list4")
     -- , ("list123", mkList "1" "list23")
+    , ("isShort", isShortPMC)
     , ("zipWith", zipWithPMC)
+    , ("foo", EAbs (MPat (PVar "x") (MRet (mkList "x" "empty")))) 
+    , ("res", EApp (EVar "foo") "1")
     ]
 
 -- Evaluators
 
 eval e = BigStep.eval e startingEnv
-run e = mapM_ printConfig (SmallStep.run e startingEnv)
+run e = do
+    putStrLn $ "& \\Gamma &" ++ show e ++ "& [] & () \\\\"
+    mapM_ printConfig (SmallStep.run e startingEnv)
 
 printConfig (h,c,s) = 
     putStr "Heap:\t" >> print (h Map.\\ startingEnv) 
@@ -42,6 +47,7 @@ mkPair x y  = ECons "()" [x, y]
 appZipWith f xs ys = (EApp (EApp (EApp zipWithPMC f) xs) ys)
 
 apply f e = ELet "res" e  (EApp f "res")
+apply' f e = ELet "result" e  (EApp f "result")
 
 apply2 f e1 e2 = 
     ELet "res" e1 
@@ -62,10 +68,8 @@ idPMC     = EAbs (MPat (PVar "x") (MRet (EVar "x")))
 
 isShortPMC = 
     EAbs (MAlt 
-        (MPat (PCons ":" [PVar "x", PCons ":" [PVar "y", PVar "ys"]]) 
-            ((MRet (ECons "False" []))))
-        (MPat (PVar "ys") 
-            ((MRet (ECons "True" [])))))
+        (MPat (PCons ":" [PVar "x", PCons ":" [PVar "y", PVar "ys"]]) (MRet (ECons "False" [])))
+        (MPat (PVar "ys") (MRet (ECons "True" []))))
 
 zipWithPMC =
     -- ELet "zipWith"
@@ -83,8 +87,10 @@ headPMC = EAbs (MPat (PCons ":" [PVar "x", PVar "xs"]) (MRet (EVar "x")))
 tailPMC = EAbs (MPat (PCons ":" [PVar "x", PVar "xs"]) (MRet (EVar "xs")))
 
 -- Example 1: isShort (foo True)
-example1 = apply isShortPMC (EApp foo "True")
+example1 = apply isShortPMC (apply foo (ECons "True" []))
     where foo = EAbs (MPat (PVar "x") (MRet (mkList "x" "empty"))) 
+
+example1NoLet = EApp isShortPMC "res"
 
 -- Example 2: zipWith mkPair [] (tail [])
 example2 = --apply3 zipWithPMC mkPairPMC (ECons ":" []) (apply tailPMC (ECons ":" []))
