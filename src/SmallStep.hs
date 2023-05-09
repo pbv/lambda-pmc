@@ -31,7 +31,7 @@ eval (_, M _ MFail, (CEnd) : _)   = throwError Stuck
 eval config = do
     config'@(heap, control, stack) <- eval' config
     h <- gets startingEnv
-    traceM $ show (heap Map.\\ h, control, stack)
+    traceM $ showStep (heap Map.\\ h, control, stack)
     eval config'
 
 eval' :: Configuration -> Eval Configuration
@@ -53,7 +53,8 @@ eval' (heap, E (EAbs m), stack)
 eval' (heap, E (EVar y), stack) = 
     case extract y heap of
         Nothing -> throwError UndefinedVariable
-        Just e -> return (restrict y heap, E e, (CUpd y) : stack)
+        Just e | whnf e -> return (heap, E e, stack)
+        Just e -> return (heap, E e, (CUpd y) : stack)
 
 --Update
 eval' (heap, E w, (CUpd y : stack))
