@@ -144,20 +144,20 @@ instance Show Pat where
     show (PVar x) = x
     show (PCons ":" xs) = case xs of 
         [] -> "\\textsf{nil}"
-        (h:t) -> "(" ++ show h ++ " : " ++ (unwords . map show) t ++")"
-    show (PCons cons (h:t)) = "\\textsf{" ++ cons ++ "}" ++ "(" ++ show h ++ "," ++ (unwords . map show) t ++")"
+        (h:t) -> "(" ++ show h ++ " : " ++ (commas . map show) t ++")"
+    show (PCons cons (h:t)) = "\\textsf{" ++ cons ++ "}" ++ "(" ++ show h ++ "," ++ (commas . map show) t ++")"
     show (PCons cons []) = "\\textsf{" ++ cons ++ "}"
 
 instance Show Continuation where
     show (CArg x) = x
     show (CUpd x) = "!" ++ x
     show CEnd = "\\$"
-    show (CAlt args m) = "?([" ++ unwords args ++ "]," ++ show m ++ ")"
-    show (CPat args m) = "@([" ++ unwords args ++ "]," ++ show m ++ ")"
+    show (CAlt args m) = "?([" ++ commas args ++ "]," ++ show m ++ ")"
+    show (CPat args m) = "@([" ++ commas args ++ "]," ++ show m ++ ")"
 
 instance Show Control where
     show (E e) = "\\eval{" ++ show e ++ "}"
-    show (M args m) = "\\match{[" ++ unwords args ++ "]}{" ++ show m ++ "}"
+    show (M args m) = "\\match{[" ++ commas args ++ "]}{" ++ show m ++ "}"
 
 
 showStep :: Configuration -> String
@@ -165,3 +165,8 @@ showStep (h,c,s) = "& " ++ showHeap (Map.toList h) ++ " & " ++ show c ++ " & " +
 
 showHeap [] = "\\Gamma"
 showHeap h = "\\{" ++(unwords. map show) h ++ "\\}"
+
+commas :: [String] -> String
+commas [] = []
+commas [x] = x
+commas (x:xs) = x ++ ",~" ++ commas xs
