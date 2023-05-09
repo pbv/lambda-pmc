@@ -164,7 +164,7 @@ showStep :: Configuration -> String
 showStep (h,c,s) = "& " ++ showHeap (Map.toList h) ++ " & " ++ show c ++ " & " ++ show s ++ "& () \\\\"
 
 showHeap [] = "\\Gamma"
-showHeap h = "\\{" ++(unwords. map show) h ++ "\\}"
+showHeap h = "\\{" ++(commas. map (\(a,b) -> "(" ++ a ++ "\\mapsto" ++ show b ++ ")")) h ++ "\\}"
 
 commas :: [String] -> String
 commas [] = []
