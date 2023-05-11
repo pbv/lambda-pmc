@@ -402,29 +402,101 @@ to see that we can recover the set $\lset$ of locations under evaluation
 used in the big-step semantics from the return stack of the small-step
 semantics.
 \begin{definition}
-  Let $\text{upd}(\retstack)$
+  Let $\upd{\retstack}$
   be the set of locations marked
   for updates in a stack \retstack, i.e.\@
-  $\{ y ~:~ (!y) \in \retstack \}$.
+  $\upd{\retstack} = \{ y ~:~ (!y) \in \retstack \}$.
 \end{definition}
 
 \begin{theorem}
   If $(\Gamma, \eval{e}, \retstack) \Rightarrow^{*} (\Delta, \eval{w},
   \retstack)$ is a balanced expression evaluation then
-  $\Gamma;\text{upd}(\retstack); e \expev \Delta; w$.
+  $\Gamma;\upd{\retstack}; e \expev \Delta; w$.
 
   If $(\Gamma, \match{A}{m}, \retstack) \Rightarrow^{*} (\Delta,
   \match{[\,]}{m'}, \retstack)$ is a balanced matching evaluation then
-  $\Gamma;\text{upd}(\retstack); A;m \matev \Delta;m'$
+  $\Gamma;\upd{\retstack}; A;m \matev \Delta;m'$
 \end{theorem}
 
 \begin{proof}
   The proof is by induction on the derivation of balanced evaluations
   following the grammars \eqref{eq:bal-expr} and
-  \eqref{eq:bal-matching}.  Note that each production rule corresponds
-  to one of the big-step evaluation rules for $\expev$ or $\matev$.
+  \eqref{eq:bal-matching}.  Each production of the grammars corresponds
+  to one big-step evaluation rule for $\expev$ or $\matev$.
 
+  The base case corresponds to empty balanced evaluations;
+  the start configurations can only of three forms:
+  \begin{description}
+  \item[$(\Gamma, \eval{w}, \retstack)$:]
+    the proof obligation is given by rule \bigrule{Whnf}.
+  \item [$(\Gamma, \match{[\,]}{\matchreturn{e}}, \retstack)$:]
+    the proof obligation is given by rule \bigrule{Return}.
+  \item [$(\Gamma, \match{[\,]}{\matchfail}, \retstack)$]
+    the proof obligation is given by rule \bigrule{Fail}.
+  \end{description}
 
+  The remaining cases are non-empty balanced evaluations; we present
+  some cases in detail.
+  
+  \paragraph{Case $\textsc{App1}~B~\textsc{App2}~B$}
+  The balanced evaluation must be
+  \[
+    \begin{split}
+      (\Gamma,\eval{(e~y)}, \retstack) & \stackrel{\textsc{App1}}{\Rightarrow}
+      (\Gamma, \eval{e}, y:\retstack) \Rightarrow^{*}
+      (\Gamma', \eval{(\lambda m)}, y:\retstack) \\
+      & \stackrel{\textsc{App2}}{\Rightarrow}
+      (\Gamma', \eval{\lambda (\matcharg{y}{m})}, \retstack)
+      \Rightarrow^{*} (\Delta, \eval{w}, \retstack)
+    \end{split}
+  \]
+  Applying the induction hypothesis to the evaluation sequences above we get
+  \begin{gather*}
+    \Gamma;\upd{\retstack};e \expev \Gamma'; \lambda m \\
+    \Gamma';\upd{\retstack};\lambda(\matcharg{y}{m}) \expev \Delta;w
+  \end{gather*}
+  Applying rule \bigrule{App} yields the proof obligation
+  $\Gamma;\upd{\retstack};(e~y); \expev \Delta; w$.
+
+  \paragraph{Case $\textsc{Sat}~B'~\textsc{Return1B}~B$}
+  The balanced evaluation must be
+  \[
+    \begin{split}
+      (\Gamma, \eval{\lambda m}, \retstack) & \stackrel{\textsc{Sat}}{\Rightarrow}
+      (\Gamma, \match{[\,]}{m}, \$:\retstack) \Rightarrow^{*}
+      (\Gamma', \match{[\,]}{\matchreturn{e}}, \$:\retstack) \\
+      & \stackrel{\textsc{Return1B}}{\Rightarrow}
+      (\Gamma', \eval{e}, \retstack) \Rightarrow^{*}
+      (\Delta, \eval{w}, \retstack)
+    \end{split}
+  \]
+  Note that $\upd{(\$:\retstack)} = \upd{\retstack}$.
+  Applying the induction hypothesis to the evaluation sequences above we get
+  \begin{gather*}
+    \Gamma;\upd{\retstack}; [\,]; m \matev \Gamma'; \matchreturn{e} \\
+    \Gamma';\upd{\retstack}; e \expev \Delta; w
+  \end{gather*}
+  Applying rule \bigrule{Sat} yields the proof obligation.
+
+  \paragraph{Case $\textsc{Alt1}~B'~\textsc{Alt2}~B'$}
+  The balanced evaluation must be
+  \[ \begin{split}
+      (\Gamma, \match{A}{(\matchalt{m_1}{m_2})}, S) &
+      \stackrel{\textsc{Alt1}}{\Rightarrow}
+      (\Gamma, \match{A}{m_1}, S') \Rightarrow^{*}
+      (\Gamma' \match{[\,]}{\matchfail}, S') \\
+      & \stackrel{\textsc{Alt2}}{\Rightarrow}
+    (\Gamma', \match{A}{m_2}, S) \Rightarrow^{*}
+    (\Delta, \match{[\,]}{m'}, S)
+      \end{split}
+  \]
+  where $S' = @(A,m_2):S$.  Note that $\upd{S'} = \upd{S}$. Applying
+  the induction hypothesis to the balanced evaluations above we get
+  \begin{gather*}
+    \Gamma;\upd{S};A;m_1 \matev \Gamma'; \matchfail \\
+    \Gamma';\upd{S};A;m_2 \matev \Delta; m'
+  \end{gather*}
+  Applying rule \bigrule{Alt2} yields the proof obligation.
 \end{proof}
 
 %%% Local Variables:
