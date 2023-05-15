@@ -65,11 +65,11 @@ The last condition generalizes the Haskell syntax rule that the number
 of patterns for each clause of a definition must be the
 same~(Section~4.4.3.1 of~\cite{haskell_2010_report}).
 
-A \emph{weak head normal normal} (whnf) $w$ is then either
+An expression is in weak head normal normal (whnf) $\whnf$ if it is either
 a matching abstraction of arity greater than zero or a constructor:
 \[
 \begin{array}{rcll}
-  w  &::=&  \lambda m & \text{such that}~ \arity{m}> 0 \\
+  \whnf  &::=&  \lambda m & \text{such that}~ \arity{m}> 0 \\
      &|& \constr{c}{y_1,\ldots,y_n}
 \end{array}
 \]
@@ -85,6 +85,13 @@ machine with multi-argument functions e.g.\@ the
 STG~\cite{jones_1992}.  However, in our case this is done not for
 efficency but rather to simplify evaluation by ensuring that we only
 ever evaluate saturated matchings.
+
+We also define a weak normal form $\matchresult$ for matching results, namely,
+either a return expression or a failure:
+\[
+  \matchresult \quad::=\quad \matchreturn{e} \quad|\quad \matchfail
+\]
+  
 
 
 \begin{figure}
@@ -223,7 +230,7 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
    expression $e$ from heap $\Gamma$ yields heap $\Delta$ and result $w$;
   \item[$\Gamma;\lset;\argstack; m \matev \Delta;\matchresult$] 
     Evaluating matching $m$ from heap $\Gamma$ and argument stack \argstack\
-    yields heap $\Delta$ and matching \matchresult.
+    yields heap $\Delta$ and result \matchresult.
   \end{description}
 
   In the $\matev$ judgements the argument stack \argstack\ is
