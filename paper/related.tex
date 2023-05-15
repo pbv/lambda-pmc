@@ -11,12 +11,12 @@ the subsequent chapter.
 
 Kahl defines a pattern matching calculus and proved its
 confluence~\cite{kahl_2004}. This work forms the basis for our
-\lambdaPMC\ language and the two semantics. The principle difference
-is that we do not consider the ``empty expression'' corresponding to a
+\lambdaPMC\ language and the two semantics. The principle differences
+are: (1) our operational semantics deal with lazy evaluation
+explicitly and (2) we do not consider the ``empty expression'' corresponding to a
 pattern matching failure $\lambda\matchfail$; there is simply no
 evaluation in such cases.  Our definitions of normal forms for expressions
-and matchings
-are also novel. % and inspired by the STG machine~\cite{jones_1992}.
+and matchings are also novel. % and inspired by the STG machine~\cite{jones_1992}.
 
 Klop et.\@ al.\@~\cite{KLOP200816} re-visit the lambda calculus with
 patterns of Peyton~Jones and situates it in the context of more
@@ -32,9 +32,9 @@ type system based on non-idempotent intersection types to characterize
 bounds on the length of normalization sequences for such pattern
 calculi.
 
-Wadler's seminal paper~\cite{wadler_1987} introduced \emph{views} that
-generalize pattern matching to abstract data types.
-% It should be should be straightforward to extend \lambdaPMC\ with this extension.
+Wadler~\cite{wadler_1987} introduced \emph{view patterns} that
+generalize pattern matching to abstract data types; as seen in Section~\ref{sec:examples},
+these are easily translated into \lambdaPMC.
 McBride and McKinna~\cite{mcbride_mckinna_2004} have looked at pattern
 matching in a dependently-typed setting (where matching refines not
 just values but also types) and generalized the notion of views to

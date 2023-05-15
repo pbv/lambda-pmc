@@ -183,7 +183,7 @@ boolean guard~\cite{kahl_2004}:
   \end{array}
 \]
 
-The translation of boolean generalizes
+The translation of boolean guards generalizes
 for arbitrary \emph{pattern guards}; for example:
 \begin{verbatim}
 addLookup env v1 v2 
@@ -196,12 +196,70 @@ translates as:
 \[
   addLookup = \lambda \!\!\begin{array}[t]{l}
                      (env \amatchpat v1 \amatchpat v2 \amatchpat \\
-                     lookup~ env~ v1 \amatcharg Just(r1) \amatchpat \\
-                     lookup~ env~ v2 \amatcharg Just(r2) \amatchpat  \matchreturn {r1 + r2})
+                     lookup~ env~ v1 \amatcharg \cons{Just}(r1) \amatchpat \\
+                     lookup~ env~ v2 \amatcharg \cons{Just}(r2) \amatchpat  \matchreturn {r1 + r2})
                      \end{array}
 \]
 
-Finaly, the GHC extensions \emph{LambdaCase} and
+
+
+  Patterns guards can also be used to encode
+  \emph{view patterns}~\cite{wadler_1987,ghc_guide_view_patterns}
+  that allow matching over abstract data types.
+  Consider a Haskell data type for sequences implemented as a binary tree
+  (also known as ``join lists''):
+\begin{verbatim}
+data JList a = Empty | Single a | Join (JList a) (JList a)
+\end{verbatim}
+  To allow pattern matching but keep the internal representation opaque
+  we define a \emph{view type} for extracting
+  the first element and a tail (a join list) and a \emph{view function}:
+\begin{verbatim}
+data JListView a = Nil | Cons a (JList a)
+view :: JList a -> JListView a
+\end{verbatim}
+  Using this view function, we can define a recursive \textit{length} function
+  without exposing the join list constructors:
+\begin{verbatim}
+length :: JList a -> Integer
+length (view -> Nil) = 0
+length (view -> Cons x xs) = 1 + length xs
+\end{verbatim}
+
+To match a variable \texttt{t} with a pattern \verb|view -> patt|
+we need to evaluate \verb|view t| and match the result againts \verb|patt|.
+This can be translated into \lambdaPMC\ in a straightforward way
+using pattern guards:
+\[
+  length = \lambda \!\!\begin{array}[t]{l}
+                     (t \amatchpat view~t \amatcharg 
+      \cons{Nil} \amatchpat \matchreturn {0} \\
+      \mid t \amatchpat view~t \amatcharg \cons{Cons}(h,xs) \amatchpat \matchreturn{1+length~ xs})
+    \end{array} \\
+\]
+The view function for join lists could be defined as follows; note the use
+of view patterns in the view function itself:
+\begin{verbatim}
+view Empty = Nil
+view (Single a) = Cons a Empty
+view (Join (view -> Cons h t) y) = Cons h (Join t y)
+view (Join (view -> Nil) y) = view y
+\end{verbatim}
+Again the translation in \lambdaPMC\ is straightforward:
+\[
+  view = \lambda\!\!
+  \begin{array}[t]{l}
+    (\cons{Empty} \amatchpat \matchreturn{\cons{Nil}} \\
+    \mid \cons{Single}(x) \amatchpat \matchreturn{\cons{Cons}(x,\cons{Nil})} \\
+    \mid \cons{Join}(xs,ys) \amatchpat view~xs \amatcharg 
+    \cons{Cons}(h,t) \amatchpat \\
+    \qquad \qquad\qquad\qquad \matchreturn{\cons{Cons}(h,\cons{Join}(t,ys))} \\
+    \mid \cons{Join}(xs,ys) \amatchpat view~xs ~ \amatcharg
+    \cons{Nil} \amatchpat \matchreturn{view~ys})
+  \end{array}
+\]
+
+Finaly, the GHC extensions for \emph{LambdaCase} and
 \emph{LambdaCases}~\cite{ghc_guide_lambda_case} can be trivally
 encoded as abstraction matchings; for example
 \begin{verbatim}
@@ -225,10 +283,9 @@ We could also avoid the trival guard in the last alternative:
   ~|~  \matchreturn{-1} ))
  \end{array}    
 \]
+  
 
-\endinput
-
-% Finally, in Haskell we can make a pattern \emph{irrefutable} by prefixing it
+  % Finally, in Haskell we can make a pattern \emph{irrefutable} by prefixing it
 % with a single tilde sign (\texttt{\~{}}). For example, the definition
 % \begin{verbatim}
 % f ~(x:xs) = rhs
@@ -244,6 +301,8 @@ We could also avoid the trival guard in the last alternative:
 %   \lambda(v \amatchpat {(x:xs)} \amatchpat \matchreturn{xs}) \amatcharg
 %   {xs} \amatchpat \matchreturn {rhs})
 % \]
+
+
 
 %%% Local Variables:
 %%% mode: latex
