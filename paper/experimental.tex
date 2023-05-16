@@ -1,25 +1,40 @@
-
 \section{Experimental results}\label{sec:experimental}
 
-% Example 1 : isShort (foo True)
-%
-% foo x = [x]
-%
-% This illustrates pattern matching failure and sharing of evaluation
+The initial environment is
 
+\[
+    \Gamma = \{ nil = \cons{nil}(),\ one = \cons{1}() \}
+\]
 
-% Example 2 : zipWith f xs (tail xs)
+\newcommand{\retTrue}{\matchreturn{\textsf{True}}}
+\newcommand{\retFalse}{\matchreturn{\textsf{False}}}
+\newcommand{\isShortBody}{\matchalt{\matchpat{(x : y : ys)}{\retFalse}}{\matchpat{ys}{\retTrue}}}
+\newcommand{\isShortPMC}{\ensuremath{\abstr{\isShortBody}}}
+\newcommand{\isShort}{\textsf{isShort}}
+% \newcommand{\listOne}{\textsf{cons}(one,nil)}
+\newcommand{\listOne}{(one : nil)}
 
-% xs = []
-% f x y = Pair(x,y)
-
-% This illustrates that zipWith is non-strict on the second argument
-
-
-% Example 3 : nodups [1,1,2,1]
-
-% Add primitive values for integers and monomorphic == :: Int -> Int -> Bool
-
-% Illustrates pattern guards and as patterns
-
-
+\begin{figure*}
+    \[
+        \begin{array}{llll}
+            \hline
+            \text{Heap} & \text{Control}                                    & \text{RetStack}                                              & \text{Rule}            \\
+            \hline
+            \Gamma      & \eval{\llet{res = \listOne}{\app{\isShort}{res}}} & []                                                           & (\smallrule{Let})      \\
+            \Gamma \cup \{(l_1\mapsto\listOne)\}
+                        & \eval{\app{\isShort}{l_1}}                        & []                                                           & (\smallrule{App1})     \\
+            \Gamma'     & \eval{\isShort}                                   & [l_1]                                                        & (\smallrule{App2})     \\
+            \Gamma'     & \eval{\abstr{\matcharg{l_1}{\isShortBody}}}       & []                                                           & (\smallrule{Sat})      \\
+            \Gamma'     & \match{[]}{\matcharg{l_1}{\isShortBody}}          & [\$]                                                         & (\smallrule{Arg})      \\
+            \Gamma'     & \match{[l_1]}{\isShortBody}                       & [\$]                                                         & (\smallrule{Alt1})     \\
+            \Gamma'     & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}} & [?([l_1],\matchpat{ys}{\matchreturn{\textsf{True}}}),~\dots] & (\smallrule{Cons1})    \\
+            \Gamma'     & \eval{l_1}                                        & [@([],\matchpat{(x : (y : ys))}{\retFalse}),~\dots]          & (\smallrule{Var})      \\
+            \Gamma'     & \eval{\listOne}                                   & [@([],\matchpat{(x : (y : ys))}{\retFalse}),~\dots]          & (\smallrule{Cons2})    \\
+            \Gamma'     & \match{[]}{\matchfail}                            & [?([l_1],\matchpat{ys}{\matchreturn{\textsf{True}}}),~\dots] & (\smallrule{Fail})     \\
+            \Gamma'     & \match{[l_1]}{\matchpat{ys}{\retTrue}}            & [\$]                                                         & (\smallrule{Alt2})     \\
+            \Gamma'     & \match{[]}{\retTrue}                              & [\$]                                                         & (\smallrule{Return1B}) \\
+            \Gamma'     & \eval{\textsf{True}}                              & []                                                           & \text{Success}         \\
+        \end{array}
+    \]
+    \caption{Example application of \textsf{isShort} to a list with a single element}\label{ex:isShort}
+\end{figure*}
