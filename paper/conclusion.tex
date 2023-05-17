@@ -1,2 +1,47 @@
 
 \section{Conclusion and further work}\label{sec:conclusion}
+
+This paper presented \lambdaPMC, a small lazy functional language
+based a pattern matching calculus together with two operational
+semantics: a big-step semantics in the style of Lanchbury and a
+small-step abstract machine in the style of the lazy Krivine machine.
+The principal contribution of \lambdaPMC\ over previous presentations
+in the literature is that the translation of a source language such as
+Haskell into \lambdaPMC\ enjoys a closer relation: each equation in
+the source language corresponds to one alternative in a matching
+abstraction.  Furthermore, we have shown that \lambdaPMC\ can
+seamlessly handle extensions such as pattern guards and view patterns.
+
+The original motivation for this work came up during the
+implementation of a step-by-interpreter for a small Haskell-like
+language for teaching.\footnote{Available at
+  \url{https://github.com/pbv/haskelite}} In particular, we would like
+the able to relate equations in the source program to the reduction
+steps taken.  \lambdaPMC\ should be more suitable for this than the
+traditional $\lambda$-calculus plus case expressions because
+it can preserve the structure of the original program.
+
+A number of directions for extending this work are possible.  For
+simplicity, we have presented a machine that operates over expressions
+and employs substitutions (cf.\@ rules \smallrule{Let} and
+\smallrule{Bind}).  It should be straightforward to avoid this
+inefficiency using offsets into environments (i.e.\@ De~Bruijn
+indices) as in the subsequent derivations of abstract machines
+in~\cite{sestof_1997}.
+
+It should also be possible to add \emph{unboxed types} similarly to
+what is done in the GHC Core and STG languages~\cite{jones_1992}.
+Another direction would be to explore whether the transformation based
+optimisations of Peyton~Jones and Santos~\cite{peytonjones_1997a}
+carry over to our setting.  Given that \lambdaPMC\ is equiped with a
+relatively simple operational model, it would be interesting to
+explore if it we could prove some transformations to be optimisations
+at a more abstract level than the \emph{de facto} implementation (the
+GHC compiler).
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

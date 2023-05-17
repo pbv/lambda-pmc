@@ -62,8 +62,8 @@ the sub expression:
              \end{array}
 \]
 Furthermore, \lambdaPMC\ can easily handle
-other extensions to pattern matching, such as as-patterns, boolean and
-pattern guards and lambda cases.
+other extensions to pattern matching, such as as-patterns, 
+pattern guards, view patterns and lambda cases.
 
 The contributions presented in this paper are:
 \begin{enumerate}
@@ -77,13 +77,15 @@ The contributions presented in this paper are:
 The remaining of this paper is structured as follows:
 Section~\ref{sec:syntax} defines the syntax of \lambdaPMC\ and reviews
 the reduction rules of the Kahl's pattern matching
-calculus. Section~\ref{sec:bigstep} defines normal
-forms and presents a big-step semantics for language.
-Section~\ref{sec:smallstep} defines configurations and small-step
-reduction rules of an abstract machine for \lambdaPMC\ and presents a
-proof sketch for correctness with respect to the big-step semantics.
-Section~\ref{sec:experimental} presents some experimental results from a
-prototype implementation.  Section~\ref{sec:related} discusses related
+calculus. Section~\ref{sec:bigstep} defines normal forms and presents
+a big-step semantics for language.  Section~\ref{sec:smallstep}
+defines configurations and small-step reduction rules of an abstract
+machine for \lambdaPMC\ and presents some examples.
+Section~\ref{sec:soundness} presents proof sketch for correctness with
+respect to the big-step semantics.
+%Section~\ref{sec:experimental} presents some experimental results from a
+%prototype implementation.
+Section~\ref{sec:related} discusses related
 work. Finally, Section~\ref{sec:conclusion} highlights
 directions for further work.
 
