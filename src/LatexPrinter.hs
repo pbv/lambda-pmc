@@ -8,10 +8,10 @@ instance Show Expr where
     show (EApp e x) = "\\app{" ++ show e ++ "}{" ++ x ++ "}"
     show (EAbs m) = "\\abstr{" ++ show m ++ "}"
     show (ECons ":" xs) = case xs of 
-        [] -> "\\textsf{nil}"
+        [] -> "\\constr{\\cons{nil}}"
         (h:t:[])  -> "(" ++ h ++ " : " ++ t ++ ")"
-    show (ECons cons []) = "\\textsf{" ++ cons ++ "}"
-    show (ECons cons [x,y]) = "\\textsf{" ++ cons ++ "}" ++ "(" ++ x ++ "," ++ y ++")"
+    show (ECons cons []) = "\\constr{\\cons{" ++ cons ++ "}}{}"
+    show (ECons cons [x,y]) = "\\constr{\\cons{" ++ cons ++ "}}{" ++ x ++ "," ++ y ++ "}"
     show (ELet x e1 e2) = 
         "\\llet{" ++ x ++ " = " ++ show e1 ++ "}{" ++ show e2 ++ "}"
 
@@ -56,7 +56,7 @@ commas (x:xs) = x ++ ",~" ++ commas xs
 
 printBegin = putStrLn "\\begin{figure*}\n\\[ \n\\begin{array}{llll}\n\\hline\n\\text{Heap} & \\text{Control} & \\text{RetStack} & \\text{rule} \\\\\n\\hline"
 printEnd = putStrLn "\\end{array}\n\\]\n\\end{figure*}"
-printInitial e = putStrLn $ "\\Gamma &" ++ show e ++ "& [] & () \\\\"
+printInitial e = putStrLn $ "\\Gamma & " ++ show (E e) ++ " & [] & () \\\\"
 
 printConfig env (h,c,s) = 
     putStr "Heap:\t" >> print (h Map.\\ env) 

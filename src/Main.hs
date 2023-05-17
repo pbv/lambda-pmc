@@ -10,6 +10,7 @@ import qualified Data.Map as Map
 
 startingEnv = Map.fromList 
     [ ("nil",  nil)
+    , ("unit",  unit)
     , ("zero", zero)
     , ("one",  one)
     , ("two",  two)
@@ -18,6 +19,7 @@ startingEnv = Map.fromList
     , ("nodups",  nodupsPMC)
     , ("isEqual", isEqualPMC)
     , ("single", singlePMC)
+    , ("tail", tailPMC)
     , ("singleton", mkList "one" "nil")
     , ("double", mkList "two" "single")
     , ("triple", mkList "one" "double")
@@ -48,6 +50,7 @@ zero  = ECons "0" []
 one   = ECons "S" ["zero"]
 two   = ECons "S" ["one"]
 nil   = ECons ":" []
+unit  = ECons "unit" []
 
 isNil   = PCons ":" []
 isTrue  = PCons "True"  []
@@ -97,10 +100,10 @@ nodupsPMC = EAbs (MAlt pat1 (MAlt pat2 pat3))
         pat3 = MPat isNil (MRet nil)
 
 -- Example 1: isShort [1]
-example1 = apply isShortPMC (mkList "one" "nil")
+example1 = apply isShortPMC (EApp singlePMC "unit")
 
 -- Example 2: zipWith mkPair [] (tail [])
-example2 = apply (EApp (EApp zipWithPMC "mkPair") "nil") (EApp tailPMC "nil")
+example2 = apply (EApp (EApp (EVar "zipWith") "mkPair") "nil") (EApp (EVar "tail") "nil")
 
 -- Example 3: nodups [1,1,2,1]
 example3 = EApp nodupsPMC "list1121"

@@ -1,9 +1,9 @@
 \section{Experimental results}\label{sec:experimental}
 
-\newcommand{\nil}{\constr{\cons{Nil}{}}}
-\newcommand{\unit}{\constr{\cons{Unit}{}}}
-\newcommand{\true}{\constr{\cons{True}{}}}
-\newcommand{\false}{\constr{\cons{False}{}}}
+\newcommand{\nil}{\cons{Nil}}
+\newcommand{\unit}{\cons{Unit}}
+\newcommand{\true}{\cons{True}}
+\newcommand{\false}{\cons{False}}
 \newcommand{\retTrue}{\matchreturn{\true}}
 \newcommand{\retFalse}{\matchreturn{\false}}
 \newcommand{\isShortBody}{\matchalt{\matchpat{(x : y : ys)}{\retFalse}}{\matchpat{ys}{\retTrue}}}
@@ -84,8 +84,28 @@ The initial environment is
             \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\matchfail}                                     & ?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Alt2})     \\
             \Gamma[l_1\mapsto(u : nil)]             & \match{[l_1]}{\matchpat{ys}{\retTrue}}                     & \$                                       & (\smallrule{Bind})     \\
             \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\retTrue}                                       & \$                                       & (\smallrule{Retun1B})  \\
-            \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                               & \text{Success}         \\
+            \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                               &          \\
         \end{array}
     \]
     \caption{Example application of \textit{isShort} to a list with a single element}\label{ex:isShort}
 \end{figure*}
+
+\newcommand{\zipWithPMC}{
+    \abstr{\matchalt
+        {\matchpat{f}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\matchreturn{\llet{head = \app{\app{f}{x}}{y}}{\llet{tail = \app{\app{\app{zipWith}{f}}{xs}}{ys}}{(head : tail)}}}}}}}
+        {\matchpat{f}{\matchpat{xs'}{\matchpat{ys'}{\matchreturn{\nil}}}}}}}
+\newcommand{\tailPMC}{\abstr{\matchpat{(x : xs)}{\matchreturn{xs}}}}
+\newcommand{\zipWith}{\textit{zipWith}}
+\newcommand{\tail}{\textit{tail}}
+
+
+For the zipWith example.
+
+\[ \{(l1\mapsto\app{tail}{nil})\} \]
+
+\begin{align*}
+    &\match{[nil,~l1]}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\matchreturn{\dots}}}}  \\
+    &\eval{nil}  \\
+    &\eval{\nil}  \\
+    &\match{[]}{\matchfail}  \\
+\end{align*}
