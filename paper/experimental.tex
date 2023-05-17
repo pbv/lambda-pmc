@@ -1,21 +1,25 @@
 \section{Experimental results}\label{sec:experimental}
 
+\newcommand{\nil}{\constr{\cons{Nil}{}}}
+\newcommand{\unit}{\constr{\cons{Unit}{}}}
+\newcommand{\true}{\constr{\cons{True}{}}}
+\newcommand{\false}{\constr{\cons{False}{}}}
+\newcommand{\retTrue}{\matchreturn{\true}}
+\newcommand{\retFalse}{\matchreturn{\false}}
+\newcommand{\isShortBody}{\matchalt{\matchpat{(x : y : ys)}{\retFalse}}{\matchpat{ys}{\retTrue}}}
+\newcommand{\isShortPMC}{\ensuremath{\isShort}}
+\newcommand{\listu}{(u : nil)}
+\newcommand{\singlePMC}{\abstr{(\matchpat{x}{\matchreturn{(x : nil)}})}}
+\newcommand{\retSingle}{\matchreturn{(x : nil)}}
+\newcommand{\matchNilList}{\matcharg{nil}{\matchpat{(y : ys)}{\retFalse}}}
+\newcommand{\isShort}{\textit{isShort}}
+\newcommand{\single}{\textit{single}}
+
 The initial environment is
 
 \[
-    \Gamma = \{ nil = \cons{nil}(),\ one = \cons{1}() \}
+    \Gamma = \{ nil = \nil,\ u = \unit \}
 \]
-
-\newcommand{\retTrue}{\matchreturn{\textsf{True}}}
-\newcommand{\retFalse}{\matchreturn{\textsf{False}}}
-\newcommand{\isShortBody}{\matchalt{\matchpat{(x : y : ys)}{\retFalse}}{\matchpat{ys}{\retTrue}}}
-\newcommand{\isShortPMC}{\ensuremath{\isShort}}
-\newcommand{\isShort}{\textsf{isShort}}
-% \newcommand{\listOne}{\textsf{cons}(one,nil)}
-\newcommand{\listOne}{(one : nil)}
-\newcommand{\single}{\abstr{(\matchpat{x}{\matchreturn{(x : nil)}})}}
-\newcommand{\retSingle}{\matchreturn{(x : nil)}}
-\newcommand{\matchNilList}{\matcharg{nil}{\matchpat{(y : ys)}{\retFalse}}}
 
 % \begin{figure*}
 %     \[
@@ -23,64 +27,65 @@ The initial environment is
 %             \hline
 %             \text{Heap} & \text{Control}                                    & \text{RetStack}                                   & \text{Rule}            \\
 %             \hline
-%             \Gamma      & \eval{\llet{xs = \listOne}{\app{\isShort}{xs}}}   & []                                                & (\smallrule{Let})      \\
-%             \Gamma \cup \{(l_1\mapsto\listOne)\}
+%             \Gamma      & \eval{\llet{xs = \listu}{\app{\isShort}{xs}}}   & []                                                & (\smallrule{Let})      \\
+%             \Gamma \cup \{(l_1\mapsto\listu)\}
 %                         & \eval{\app{\isShort}{l_1}}                        & []                                                & (\smallrule{App1})     \\
 %             \Gamma      & \eval{\isShort}                                   & [l_1]                                             & (\smallrule{App2})     \\
 %             \Gamma      & \eval{\abstr{\matcharg{l_1}{\isShortBody}}}       & []                                                & (\smallrule{Sat})      \\
 %             \Gamma      & \match{[]}{\matcharg{l_1}{\isShortBody}}          & [\$]                                              & (\smallrule{Arg})      \\
 %             \Gamma      & \match{[l_1]}{\isShortBody}                       & [\$]                                              & (\smallrule{Alt1})     \\
-%             \Gamma      & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}} & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]         & (\smallrule{Cons1})    \\
-%             \Gamma      & \eval{l_1}                                        & [@([],\matchpat{(x : y : ys)}{\retFalse}),~\dots] & (\smallrule{Var})      \\
-%             \Gamma      & \eval{\listOne}                                   & [@([],\matchpat{(x : y : ys)}{\retFalse}),~\dots] & (\smallrule{Cons2})    \\
-%             \Gamma      & \match{[]}{\matchfail}                            & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]         & (\smallrule{Fail})     \\
+%             \Gamma      & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}} & [?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Cons1})    \\
+%             \Gamma      & \eval{l_1}                                        & [@([],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Var})      \\
+%             \Gamma      & \eval{\listu}                                     & [@([],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Cons2})    \\
+%             \Gamma      & \match{[]}{\matchfail}                            & [?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Fail})     \\
 %             \Gamma      & \match{[l_1]}{\matchpat{ys}{\retTrue}}            & [\$]                                              & (\smallrule{Alt2})     \\
 %             \Gamma      & \match{[]}{\retTrue}                              & [\$]                                              & (\smallrule{Return1B}) \\
-%             \Gamma      & \eval{\textsf{True}}                              & []                                                & \text{Success}         \\
+%             \Gamma      & \eval{\true}                                      & []                                                & \text{Success}         \\
 %         \end{array}
 %     \]
-%     \caption{Example application of \textsf{isShort} to a list with a single element}\label{ex:isShort}
+%     \caption{Example application of \textit{isShort} to a list with a single element}\label{ex:isShort}
 % \end{figure*}
+
 
 \begin{figure*}
     \[
         \begin{array}{llll}
             \hline
-            \text{Heap} & \text{Control}                                            & \text{RetStack}                                   & \text{rule}            \\
+            \text{Heap}                             & \text{Control}                                             & \text{Top of Stack}                      & \text{Rule}            \\
             \hline
-            \Gamma      & \eval{\llet{xs = \app{\single}{one}}{\app{\isShort}{xs}}} & []                                                & (\smallrule{Let})      \\
-            \Gamma ,~ l_1 \mapsto \app{\single}{one}
-                        & \eval{\app{\isShort}{l_1}}                                & []                                                & (\smallrule{App1})     \\
-            \Gamma      & \eval{\isShort}                                           & [l_1]                                             & (\smallrule{App2})     \\
-            \Gamma      & \eval{\abstr{(\matcharg{l_1}{\isShortBody}})}             & []                                                & (\smallrule{Sat})      \\
-            \Gamma      & \match{[]}{\matcharg{l_1}{\isShortBody}}                  & [\$]                                              & (\smallrule{Arg})      \\
-            \Gamma      & \match{[l_1]}{\isShortBody}                               & [\$]                                              & (\smallrule{Alt1})     \\
-            \Gamma      & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}}         & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]         & (\smallrule{Cons1})    \\
-            \Gamma      & \eval{l_1}                                                & [@([],\matchpat{(x : y : ys)}{\retFalse}),~\dots] & (\smallrule{Var})      \\
-            \Gamma      & \eval{\app{\single}{one}}                                 & [!l_1,~\dots]                                     & (\smallrule{App1})     \\
-            \Gamma      & \eval{\single}                                            & [one,~\dots]                                      & (\smallrule{App2})     \\
-            \Gamma      & \eval{\abstr{(\matcharg{one}{\matchpat{x}{\retSingle}})}} & [!l_1,~\dots]                                     & (\smallrule{Sat})      \\
-            \Gamma      & \match{[]}{\matcharg{one}{\matchpat{x}{\retSingle}}}      & [\$,~\dots]                                       & (\smallrule{Arg})      \\
-            \Gamma      & \match{[one]}{\matchpat{x}{\retSingle}}                   & [\$,~\dots]                                       & (\smallrule{Bind})     \\
-            \Gamma      & \match{[]}{\matchreturn{(one : nil)}}                     & [\$,~\dots]                                       & (\smallrule{Return1B}) \\
-            \Gamma      & \eval{(one : nil)}                                        & [!l_1,~\dots]                                     & (\smallrule{Update})   \\
-            \Gamma ,~ l_1\mapsto(one : nil)
-                        & \eval{(one : nil)}                                        & [@([],\matchpat{(x : y : ys)}{\retFalse}),~\dots] & (\smallrule{Cons2})    \\
-            \Gamma      & \match{[]}{\matcharg{one}{\matchpat{x}{\matchNilList}}}
-                        & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]                 & (\smallrule{Arg})                                                          \\
-            \Gamma      & \match{[one]}{\matchpat{x}{\matchNilList}}
-                        & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]                 & (\smallrule{Bind})                                                         \\
-            \Gamma      & \match{[]}{\matchNilList}
-                        & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]                 & (\smallrule{Arg})                                                          \\
-            \Gamma      & \match{[nil]}{\matchpat{(y : ys)}{\retFalse}}             & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]         & (\smallrule{Cons1})    \\
-            \Gamma      & \eval{nil}                                                & [@([],\matchpat{(y : ys)}{\retFalse}),~\dots]     & (\smallrule{Var})      \\
-            \Gamma      & \eval{\textsf{nil}}                                       & [!nil,~\dots]                                     & (\smallrule{Update})   \\
-            \Gamma      & \eval{\textsf{nil}}                                       & [@([],\matchpat{(y : ys)}{\retFalse}),~\dots]     & (\smallrule{Fail})     \\
-            \Gamma      & \match{[]}{\matchfail}                                    & [?([l_1],\matchpat{ys}{\retTrue}),~\dots]         & (\smallrule{Alt2})     \\
-            \Gamma      & \match{[l_1]}{\matchpat{ys}{\retTrue}}                    & [\$]                                              & (\smallrule{Bind})     \\
-            \Gamma      & \match{[]}{\retTrue}                                      & [\$]                                              & (\smallrule{Retun1B})  \\
-            \Gamma      & \eval{\textsf{True}}                                      & []                                                & \text{Success}         \\
+            \Gamma                                  & \eval{\llet{xs = \app{\singlePMC}{u}}{\app{\isShort}{xs}}} & \text{---}                               & (\smallrule{Let})      \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}]
+                                                    & \eval{\app{\isShort}{l_1}}                                 & \text{---}                               & (\smallrule{App1})     \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\isShort}                                            & l_1                                      & (\smallrule{App2})     \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{\isShortBody}})}              & \text{---}                               & (\smallrule{Sat})      \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[]}{\matcharg{l_1}{\isShortBody}}                   & \$                                       & (\smallrule{Arg})      \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\isShortBody}                                & \$                                       & (\smallrule{Alt1})     \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}}          & ?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Cons1})    \\
+            \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{l_1}                                                 & @([],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Var})      \\
+            \Gamma                                  & \eval{\app{\singlePMC}{u}}                                 & !l_1                                     & (\smallrule{App1})     \\
+            \Gamma                                  & \eval{\singlePMC}                                          & u                                        & (\smallrule{App2})     \\
+            \Gamma                                  & \eval{\abstr{(\matcharg{u}{\matchpat{x}{\retSingle}})}}    & !l_1                                     & (\smallrule{Sat})      \\
+            \Gamma                                  & \match{[]}{\matcharg{u}{\matchpat{x}{\retSingle}}}         & \$                                       & (\smallrule{Arg})      \\
+            \Gamma                                  & \match{[u]}{\matchpat{x}{\retSingle}}                      & \$                                       & (\smallrule{Bind})     \\
+            \Gamma                                  & \match{[]}{\matchreturn{(u : nil)}}                        & \$                                       & (\smallrule{Return1B}) \\
+            \Gamma                                  & \eval{(u : nil)}                                           & !l_1                                     & (\smallrule{Update})   \\
+            \Gamma[l_1\mapsto(u : nil)]
+                                                    & \eval{(u : nil)}                                           & @([],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Cons2})    \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\matcharg{u}{\matchpat{x}{\matchNilList}}}
+                                                    & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Arg})                                                 \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[u]}{\matchpat{x}{\matchNilList}}
+                                                    & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Bind})                                                \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\matchNilList}
+                                                    & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Arg})                                                 \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[nil]}{\matchpat{(y : ys)}{\retFalse}}              & ?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Cons1})    \\
+            \Gamma[l_1\mapsto(u : nil)]             & \eval{nil}                                                 & @([],\matchpat{(y : ys)}{\retFalse})     & (\smallrule{Var})      \\
+            \Gamma[l_1\mapsto(u : nil)]             & \eval{\nil}                                                & !nil                                     & (\smallrule{Update})   \\
+            \Gamma[l_1\mapsto(u : nil)]             & \eval{\nil}                                                & @([],\matchpat{(y : ys)}{\retFalse})     & (\smallrule{Fail})     \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\matchfail}                                     & ?([l_1],\matchpat{ys}{\retTrue})         & (\smallrule{Alt2})     \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[l_1]}{\matchpat{ys}{\retTrue}}                     & \$                                       & (\smallrule{Bind})     \\
+            \Gamma[l_1\mapsto(u : nil)]             & \match{[]}{\retTrue}                                       & \$                                       & (\smallrule{Retun1B})  \\
+            \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                               & \text{Success}         \\
         \end{array}
     \]
-    \caption{Example application of \textsf{isShort} to a list with a single element}\label{ex:isShort}
+    \caption{Example application of \textit{isShort} to a list with a single element}\label{ex:isShort}
 \end{figure*}
