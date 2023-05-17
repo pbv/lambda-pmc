@@ -92,8 +92,8 @@ eval' (heap, (M args MFail), stack) =
     return (heap, M [] MFail, stack)
 
 --Return1A
-eval' (heap, (M args (MRet e)), stack) =
-    return (heap, M [] (MRet (foldl EApp e args)), stack)
+eval' (heap, (M args@(_:_) (MRet e)), stack)
+    = return (heap, M [] (MRet (foldl EApp e args)), stack)
 
 --Bind
 eval' (heap, (M (y : args) (MPat (PVar x) m)), stack) =
