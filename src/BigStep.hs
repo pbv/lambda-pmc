@@ -50,7 +50,7 @@ evalExpr heap l (EApp expr name) = do
     (heap', res) <- evalExpr heap l expr
     case res of
         (EAbs match) -> evalExpr heap' l (EAbs (MApp name match))
-        otherwise -> throwError $ EvalError ("Application failure " ++ show res)
+        otherwise -> throwError $ EvalError $ "Application failure " -- ++ show res
 
 evalExpr heap l (ELet x expr body) = do
     y <- fresh
@@ -81,7 +81,7 @@ evalMatch heap l (y : stack) (MPat (PCons pcons patterns) match) = do
             && (length patterns == length exprs) 
             -> evalMatch heap' l stack (buildMatch exprs patterns match)
         (ECons _ _) -> return (heap', MFail) 
-        otherwise -> throwError $ MatchError $ "Constructor mismatch: " ++ pcons ++ " and " ++ show res 
+        otherwise -> throwError $ MatchError $ "Constructor mismatch: " ++ pcons -- ++ " and " ++ show res 
 
 evalMatch heap l stack (MAlt lhs rhs) = do
     (heap', res) <- evalMatch heap l stack lhs
@@ -89,3 +89,13 @@ evalMatch heap l stack (MAlt lhs rhs) = do
         (MRet _) -> return (heap', res)
         MFail    -> evalMatch heap' l stack rhs
         -- _ -> throwError $ MatchError "alternative"
+
+evalMatch heap l stack (MGuard e (PCons pcons patterns) match) = do
+    (heap', res) <- evalExpr heap l e
+    case res of
+        (ECons econs exprs)
+            | pcons == econs
+            && (length patterns == length exprs) 
+            -> evalMatch heap' l stack (buildMatch exprs patterns match)
+        (ECons _ _) -> return (heap', MFail)
+        otherwise -> throwError $ MatchError $ "Constructor mismatch: " ++ pcons -- ++ " and " ++ show res 
