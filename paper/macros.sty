@@ -58,3 +58,29 @@
 \newcommand{\kont}{\ensuremath{\kappa}}
 
 \newcommand{\upd}[1]{\ensuremath{\mathop{!}{#1}}}
+
+
+
+% for the examples
+
+\newcommand{\nil}{[\,]}
+\newcommand{\unit}{\cons{Unit}}
+\newcommand{\true}{\cons{True}}
+\newcommand{\false}{\cons{False}}
+\newcommand{\retTrue}{\matchreturn{\true}}
+\newcommand{\retFalse}{\matchreturn{\false}}
+\newcommand{\isShortBody}{\matchalt{\matchpat{(x : y : ys)}{\retFalse}}{\matchpat{ys}{\retTrue}}}
+\newcommand{\isShortPMC}{\ensuremath{\isShort}}
+\newcommand{\singlePMC}{\abstr{(\matchpat{x}{\matchreturn{(x : nil)}})}}
+\newcommand{\retSingle}{\matchreturn{(x : nil)}}
+\newcommand{\matchNilList}{\matcharg{nil}{\matchpat{(y : ys)}{\retFalse}}}
+\newcommand{\isShort}{\textit{isShort}}
+\newcommand{\single}{\textit{single}}
+
+\newcommand{\zipWithPMC}{
+    \abstr{\matchalt
+        {\matchpat{f}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\matchreturn{\llet{head = \app{\app{f}{x}}{y}}{\llet{tail = \app{\app{\app{zipWith}{f}}{xs}}{ys}}{(head : tail)}}}}}}}
+        {\matchpat{f}{\matchpat{xs'}{\matchpat{ys'}{\matchreturn{\nil}}}}}}}
+\newcommand{\tailPMC}{\abstr{\matchpat{(x : xs)}{\matchreturn{xs}}}}
+\newcommand{\zipWith}{\textit{zipWith}}
+\newcommand{\tail}{\textit{tail}}

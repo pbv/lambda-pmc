@@ -35,7 +35,7 @@ $(\{\},\, \eval e,\, [\,])$.  Evaluation may get ``stuck''
 in a configuration
 $(\Gamma,\, \match{\argstack}{\matchfail},\, \$:\retstack)$
 due to pattern matching failure, or
-terminate sucessfully in a
+terminate successfully in a
 configuration $(\Gamma, \eval w, [\,])$.
 
 \begin{figure*}
@@ -133,13 +133,90 @@ Rule~\smallrule{Cons1} switches from evaluating a matching
 to an expression in order to perform a pattern match, pushing
 a continuation onto the return stack.
 Rule~\smallrule{Cons2} and \smallrule{Fail} handle
-the successful and unsucessful pattern match.
+the successful and unsuccessful pattern match.
 Rules~\smallrule{Alt1} and \smallrule{Alt2} deal
 with alternatives.
 Finally, rule~\smallrule{Arg} push arguments on the local argument stack.
 
 \subsection{Examples}
 
+We now present some example programs in \lambdaPMC\ that illustrate the execution of the abstract machine.
+Each example will share an initial environment $\Gamma$ with bindings for some basic constructors as to follow the normalized syntax.
+\[
+  \Gamma = \{ nil = \nil,\ u = \unit \}   
+\]
+For a first example consider \textit{zipWith} (section \ref{sec:intro}) applied to a thunk that will return a list with a single element.
+\[
+  \llet{xs = \app{\singlePMC}{u}}{\app{\isShort}{xs}}
+\]
+The full execution of the machine is presented in figure \ref{fig:ex-short}.
+Note that \textit{isShort} stands for the \lambdaPMC\ function and is not a variable.
+This example shows the application of most rules, \dots.
+
+\begin{figure*}
+\[
+  \begin{array}{lllr}
+    \hline
+    \text{Heap}                             & \text{Control}                                             & \text{Top of Stack}                        & \text{Rule}            \\
+    \hline
+    \Gamma                                  & \eval{\llet{xs = \app{\singlePMC}{u}}{\app{\isShort}{xs}}} & \text{---}                                 & (\smallrule{Let})      \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}]
+                                            & \eval{\app{\isShort}{l_1}}                                 & \text{---}                                 & (\smallrule{App1})     \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\isShort}                                            & l_1                                        & (\smallrule{App2})     \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{\isShortBody}})}              & \text{---}                                 & (\smallrule{Sat})      \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[\,]}{\matcharg{l_1}{\isShortBody}}                 & \$                                         & (\smallrule{Arg})      \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\isShortBody}                                & \$                                         & (\smallrule{Alt1})     \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}}          & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Cons1})    \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{l_1}                                                 & @([\,],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Var})      \\
+    \Gamma                                  & \eval{\app{\singlePMC}{u}}                                 & !l_1                                       & (\smallrule{App1})     \\
+    \Gamma                                  & \eval{\singlePMC}                                          & u                                          & (\smallrule{App2})     \\
+    \Gamma                                  & \eval{\abstr{(\matcharg{u}{\matchpat{x}{\retSingle}})}}    & !l_1                                       & (\smallrule{Sat})      \\
+    \Gamma                                  & \match{[\,]}{\matcharg{u}{\matchpat{x}{\retSingle}}}       & \$                                         & (\smallrule{Arg})      \\
+    \Gamma                                  & \match{[u]}{\matchpat{x}{\retSingle}}                      & \$                                         & (\smallrule{Bind})     \\
+    \Gamma                                  & \match{[\,]}{\matchreturn{(u : nil)}}                      & \$                                         & (\smallrule{Return1B}) \\
+    \Gamma                                  & \eval{(u : nil)}                                           & !l_1                                       & (\smallrule{Update})   \\
+    \Gamma[l_1\mapsto(u : nil)]
+                                            & \eval{(u : nil)}                                           & @([\,],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Cons2})    \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\matcharg{u}{\matchpat{x}{\matchNilList}}}
+                                            & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Arg})                                                   \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[u]}{\matchpat{x}{\matchNilList}}
+                                            & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Bind})                                                  \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\matchNilList}
+                                            & ?([l_1],\matchpat{ys}{\retTrue})                           & (\smallrule{Arg})                                                   \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[nil]}{\matchpat{(y : ys)}{\retFalse}}              & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Cons1})    \\
+    \Gamma[l_1\mapsto(u : nil)]             & \eval{nil}                                                 & @([\,],\matchpat{(y : ys)}{\retFalse})     & (\smallrule{Var})      \\
+    \Gamma[l_1\mapsto(u : nil)]             & \eval{\nil}                                                & !nil                                       & (\smallrule{Update})   \\
+    \Gamma[l_1\mapsto(u : nil)]             & \eval{\nil}                                                & @([\,],\matchpat{(y : ys)}{\retFalse})     & (\smallrule{Fail})     \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\matchfail}                                   & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Alt2})     \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[l_1]}{\matchpat{ys}{\retTrue}}                     & \$                                         & (\smallrule{Bind})     \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\retTrue}                                     & \$                                         & (\smallrule{Retun1B})  \\
+    \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                                 &                        \\
+  \end{array}
+\]
+\caption{Execution of \textit{isShort} applied to a list with a single element \unit}
+\label{fig:ex-short}
+\end{figure*}
+
+For a second example let us look at an excerpt of an execution of \text{zipWith} (section \ref{sec:examples}) applied as follows.
+\[
+  \llet{res = \app{tail}{nil}}{\app{\app{\app{zipWith}{mkPair}}{nil}}{res}}
+\]
+Execution follows the first branch until the control reaches the following state (where $l_1$ is bound to $\app{tail}{nil}$).
+\[
+  % \begin{array}{l}
+    \match{[nil,~l1]}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\matchreturn{\dots}}}}  \\
+    % \eval{nil}  \\
+    % \eval{\nil}  \\
+    % \match{[]}{\matchfail}  \\
+    % \end{array}
+\]
+The first pattern match fails, and thus any remaining arguments are discarded.
+Execution falls through to the second branch until the following state
+\[
+  \match{[mkPair,~nil,~l1]}{\matchpat{f}{\matchpat{xs'}{\matchpat{ys'}{\matchreturn{\constr{\cons{nil}}}}}}}
+\]
+Where all arguments are discarded by \smallrule(Bind).
+Evaluation never gets stuck because of the match failure in $\app{tail}{nil}$.
 
 
 %%% Local Variables:
