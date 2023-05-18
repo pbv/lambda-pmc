@@ -33,11 +33,13 @@ evalExpr :: Heap -> Set.Set Var -> Expr -> Eval (Heap, Expr)
 evalExpr heap _ expr
     | whnf expr = return (heap, expr)
 
-evalExpr heap l (EAbs match) = do 
-    (heap', res) <- evalMatch heap l [] match
-    case res of
-        (MRet expr) -> evalExpr heap' l expr
-        otherwise -> throwError $ EvalError "Match Failure @SAT"
+evalExpr heap l (EAbs match) 
+    | arity match == 0 
+    = do 
+        (heap', res) <- evalMatch heap l [] match
+        case res of
+            (MRet expr) -> evalExpr heap' l expr
+            otherwise -> throwError $ EvalError "Match Failure @SAT"
 
 evalExpr heap l (EVar name) = do
     case extract name heap of
