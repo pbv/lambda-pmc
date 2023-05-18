@@ -1,8 +1,8 @@
 module Main where
 
 import Syntax
-import LatexPrinter
--- import PrettyPrinter
+-- import LatexPrinter
+import PrettyPrinter
 import qualified BigStep
 import qualified SmallStep
 
@@ -103,10 +103,12 @@ nodupsPMC = EAbs (MAlt pat1 (MAlt pat2 pat3))
 example1 = apply isShortPMC (EApp singlePMC "unit")
 
 -- Example 2: zipWith mkPair [] (tail [])
-example2 = apply (EApp (EApp (EVar "zipWith") "mkPair") "nil") (EApp (EVar "tail") "nil")
+example2 = apply (EApp (EApp (EVar "zipWith") "mkPair") "singleton") (EApp (EVar "tail") "nil")
 
 -- Example 3: nodups [1,1,2,1]
 example3 = EApp nodupsPMC "list1121"
+
+example4 = EApp (apply (EAbs (MAlt (MPat (isList ["x","xs"]) (MPat isNil (MRet true))) (MPat (PVar "ys") (MPat (isList ["v","vs"]) (MRet false))))) (EApp tailPMC "nil")) "singleton"
 
 main :: IO ()
 main = return ()
