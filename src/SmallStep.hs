@@ -1,8 +1,8 @@
 module SmallStep (run) where
 
 import Syntax
-import LatexPrinter
--- import PrettyPrinter
+-- import LatexPrinter
+import PrettyPrinter
 import Substitution
 import qualified Data.Map as Map
 import Control.Monad.Except
@@ -71,29 +71,23 @@ eval' (heap, (E (ELet x expr body)), stack) = do
         heap' = extend y expr' heap
     return (heap', E body', stack)
 
---Alt1
-eval' (heap, M args (MAlt m1 m2), stack)
-    = return (heap, M args m1, (CAlt args m2) : stack)
-
---Alt2
-eval' (heap, M [] MFail, (CAlt args m) : stack)
-    = return (heap, M args m, stack)
+--Return1A
+eval' (heap, (M args (MRet e)), stack)
+    | args /= []
+    = return (heap, M [] (MRet (foldl EApp e args)), stack)
 
 -- Return1B
 eval' (heap, (M [] (MRet e)), (CEnd : stack)) = 
     return (heap, E e, stack)
 
+--Return1C
+eval' (heap, (M args MFail), stack)
+    | args /= []
+    = return (heap, M [] MFail, stack)
+
 --Return2
 eval' (heap, (M [] (MRet e)), ((CAlt _ m) : stack))
     = return (heap, M [] (MRet e), stack)
-
---Return1C
-eval' (heap, (M args MFail), stack) =
-    return (heap, M [] MFail, stack)
-
---Return1A
-eval' (heap, (M args@(_:_) (MRet e)), stack)
-    = return (heap, M [] (MRet (foldl EApp e args)), stack)
 
 --Bind
 eval' (heap, (M (y : args) (MPat (PVar x) m)), stack) =
@@ -115,10 +109,18 @@ eval' (heap, E (ECons econs vars), ((CPat args (MPat (PCons pcons pats) m)) : st
     || econs /= pcons
     = return (heap, M [] MFail, stack)
 
---PushArg
-eval' (heap, M args (MApp y m), stack) =
-    return (heap, M (y : args) m, stack)
-
 --Guard
 eval' (heap, M args (MGuard expr p@(PCons _ _) m), stack) =
     return (heap, E expr, CPat args (MPat p m) : stack)
+
+--Arg
+eval' (heap, M args (MApp y m), stack) =
+    return (heap, M (y : args) m, stack)
+
+--Alt1
+eval' (heap, M args (MAlt m1 m2), stack)
+    = return (heap, M args m1, (CAlt args m2) : stack)
+
+--Alt2
+eval' (heap, M [] MFail, (CAlt args m) : stack)
+    = return (heap, M args m, stack)
