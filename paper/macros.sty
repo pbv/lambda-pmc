@@ -84,3 +84,12 @@
 \newcommand{\tailPMC}{\abstr{\matchpat{(x : xs)}{\matchreturn{xs}}}}
 \newcommand{\zipWith}{\textit{zipWith}}
 \newcommand{\tail}{\textit{tail}}
+
+\newcommand{\lazyPMC}{
+    \abstr{\matchalt
+        {\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}
+        {\matchpat{xs}{\matchpat{ys}{\retTrue}}}}}
+\newcommand{\lazyBody}{\matchalt{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}{\matchpat{xs}{\matchpat{ys}{\retTrue}}}}
+\newcommand{\lazyFalse}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}
+\newcommand{\lazyTrue}{\matchpat{xs}{\matchpat{ys}{\retTrue}}}
+\newcommand{\tailNil}{\app{\tail}{nil}}

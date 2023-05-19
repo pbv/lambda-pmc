@@ -189,7 +189,7 @@ This example shows the application of most rules, \dots.
     \Gamma[l_1\mapsto(u : nil)]             & \eval{\nil}                                                & @([\,],\matchpat{(y : ys)}{\retFalse})     & (\smallrule{Fail})     \\
     \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\matchfail}                                   & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Alt2})     \\
     \Gamma[l_1\mapsto(u : nil)]             & \match{[l_1]}{\matchpat{ys}{\retTrue}}                     & \$                                         & (\smallrule{Bind})     \\
-    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\retTrue}                                     & \$                                         & (\smallrule{Retun1B})  \\
+    \Gamma[l_1\mapsto(u : nil)]             & \match{[\,]}{\retTrue}                                     & \$                                         & (\smallrule{Return1B})  \\
     \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                                 &                        \\
   \end{array}
 \]
@@ -197,27 +197,50 @@ This example shows the application of most rules, \dots.
 \label{fig:ex-short}
 \end{figure*}
 
-For a second example let us look at an excerpt of an execution of \text{zipWith} (section \ref{sec:examples}) applied as follows.
-\[
-  \llet{res = \app{tail}{nil}}{\app{\app{\app{zipWith}{mkPair}}{nil}}{res}}
-\]
-Execution follows the first branch until the control reaches the following state (where $l_1$ is bound to $\app{tail}{nil}$).
-\[
-  % \begin{array}{l}
-    \match{[nil,~l1]}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\matchreturn{\dots}}}}  \\
-    % \eval{nil}  \\
-    % \eval{\nil}  \\
-    % \match{[]}{\matchfail}  \\
-    % \end{array}
-\]
-The first pattern match fails, and thus any remaining arguments are discarded.
-Execution falls through to the second branch until the following state
-\[
-  \match{[mkPair,~nil,~l1]}{\matchpat{f}{\matchpat{xs'}{\matchpat{ys'}{\matchreturn{\constr{\cons{nil}}}}}}}
-\]
-Where all arguments are discarded by \smallrule(Bind).
-Evaluation never gets stuck because of the match failure in $\app{tail}{nil}$.
+For a second example consider a function similar to \textit{isShort}.
+\begin{verbatim}
+  f (x:xs) (y:ys) = False
+  f xs ys         = True
+\end{verbatim}
 
+Its translation to \lambdaPMC.
+
+\[ 
+  \textit{f} = \lambda (\matchpat{(x:y:ys)}{\matchreturn{\textsf{False}}} \mid
+  \matchpat{ys}{\matchreturn{\textsf{True}}}) 
+\]
+
+Its derivation in figure \ref{fig:ex-lazy}.
+
+\begin{figure*}
+  \[
+    \begin{array}{llll}
+      \hline
+      \text{Heap}               & \text{Control}                                          & \text{Top of Stack}    & \text{Rule}            \\
+      \hline
+      \Gamma                    & \eval{\llet{res = \tailNil}{\app{\app{f}{nil}}{res}}}   & \text{---}             & (\smallrule{Let})      \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\app{\app{f}{nil}}{l1}}                           & \text{---}             & (\smallrule{App1})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\app{f}{nil}}                                     & l1                     & (\smallrule{App1})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{f}                                                & nil                    & (\smallrule{App2})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{nil}{\lazyBody}}}                & l1                     & (\smallrule{App2})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}} & \text{---}             & (\smallrule{Sat})      \\
+      \Gamma[l1\mapsto\tailNil] & \match{[]}{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}    & \$                     & (\smallrule{Arg})      \\
+      \Gamma[l1\mapsto\tailNil] & \match{[l1]}{\matcharg{nil}{\lazyBody}}                 & \$                     & (\smallrule{Arg})      \\
+      \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyBody}                            & \$                     & (\smallrule{Alt1})     \\
+      \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyFalse}                           & ?([nil,~l1],\lazyTrue) & (\smallrule{Cons1})    \\
+      \Gamma[l1\mapsto\tailNil] & \eval{nil}                                              & @([l1],\lazyFalse)     & (\smallrule{Var})      \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\nil}                                             & !tailNil               & (\smallrule{Update})   \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\nil}                                             & @([l1],\lazyFalse)     & (\smallrule{Fail})     \\
+      \Gamma[l1\mapsto\tailNil] & \match{[]}{\matchfail}                                  & ?([nil,~l1],\lazyTrue) & (\smallrule{Alt2})     \\
+      \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyTrue}                            & \$                     & (\smallrule{Bind})     \\
+      \Gamma[l1\mapsto\tailNil] & \match{[l1]}{\matchpat{ys}{\retTrue}}                   & \$                     & (\smallrule{Bind})     \\
+      \Gamma[l1\mapsto\tailNil] & \match{[]}{\retTrue}                                    & \$                     & (\smallrule{Return1B}) \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\true{}}                                          & \text{---}             &                        \\
+    \end{array}
+  \]
+  \caption{Example of lazyness}
+  \label{fig:ex-lazy}
+\end{figure*}
 
 %%% Local Variables:
 %%% mode: latex
