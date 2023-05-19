@@ -143,7 +143,7 @@ Finally, rule~\smallrule{Arg} push arguments on the local argument stack.
 We now present some example programs in \lambdaPMC\ that illustrate the execution of the abstract machine.
 Each example will share an initial environment $\Gamma$ with bindings for some basic constructors as to follow the normalized syntax.
 \[
-  \Gamma = \{ nil = \nil,\ u = \unit \}   
+  \Gamma = \{ nil = \nil,\ u = \unit,\ tail = \tailPMC \}   
 \]
 For a first example consider \textit{zipWith} (section \ref{sec:intro}) applied to a thunk that will return a list with a single element.
 \[
@@ -204,13 +204,10 @@ For a second example consider a function similar to \textit{isShort}.
 \end{verbatim}
 
 Its translation to \lambdaPMC.
-
 \[ 
-  \textit{f} = \lambda (\matchpat{(x:y:ys)}{\matchreturn{\textsf{False}}} \mid
-  \matchpat{ys}{\matchreturn{\textsf{True}}}) 
+  f = \lazyPMC 
 \]
-
-Its derivation in figure \ref{fig:ex-lazy}.
+An example execution of $\app{\app{f}{nil}}{\app{tail}{nil}}$ in figure \ref{fig:ex-lazy}.
 
 \begin{figure*}
   \[
@@ -241,6 +238,9 @@ Its derivation in figure \ref{fig:ex-lazy}.
   \caption{Example of lazyness}
   \label{fig:ex-lazy}
 \end{figure*}
+
+If the arguments were switched around then execution would get stuck.
+
 
 %%% Local Variables:
 %%% mode: latex
