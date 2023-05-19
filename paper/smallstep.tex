@@ -221,7 +221,7 @@ Its derivation in figure \ref{fig:ex-lazy}.
       \Gamma                    & \eval{\llet{res = \tailNil}{\app{\app{f}{nil}}{res}}}   & \text{---}             & (\smallrule{Let})      \\
       \Gamma[l1\mapsto\tailNil] & \eval{\app{\app{f}{nil}}{l1}}                           & \text{---}             & (\smallrule{App1})     \\
       \Gamma[l1\mapsto\tailNil] & \eval{\app{f}{nil}}                                     & l1                     & (\smallrule{App1})     \\
-      \Gamma[l1\mapsto\tailNil] & \eval{f}                                                & nil                    & (\smallrule{App2})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\lazyPMC}                                         & nil                    & (\smallrule{App2})     \\
       \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{nil}{\lazyBody}}}                & l1                     & (\smallrule{App2})     \\
       \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}} & \text{---}             & (\smallrule{Sat})      \\
       \Gamma[l1\mapsto\tailNil] & \match{[]}{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}    & \$                     & (\smallrule{Arg})      \\
