@@ -105,10 +105,17 @@ example1 = apply isShortPMC (EApp singlePMC "unit")
 -- Example 2: zipWith mkPair [] (tail [])
 example2 = apply (EApp (EApp (EVar "zipWith") "mkPair") "singleton") (EApp (EVar "tail") "nil")
 
+f (x : xs) (y : ys) = True
+f xs ys = False
+
 -- Example 3: nodups [1,1,2,1]
 example3 = EApp nodupsPMC "list1121"
 
-example4 = EApp (apply (EAbs (MAlt (MPat (isList ["x","xs"]) (MPat isNil (MRet true))) (MPat (PVar "ys") (MPat (isList ["v","vs"]) (MRet false))))) (EApp tailPMC "nil")) "singleton"
+foo = (EAbs (MAlt 
+    (MPat (isList ["x","xs"]) (MPat (isList ["y", "ys"]) (MRet false))) 
+    (MPat (PVar "xs") (MPat (PVar "ys") (MRet true)))))
+
+example4 = apply (EApp foo "nil") (EApp tailPMC "nil")
 
 main :: IO ()
 main = return ()
