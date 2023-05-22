@@ -140,18 +140,28 @@ Finally, rule~\smallrule{Arg} push arguments on the local argument stack.
 
 \subsection{Examples}
 
-We now present some example programs in \lambdaPMC\ that illustrate the execution of the abstract machine.
-Each example will share an initial environment $\Gamma$ with bindings for some basic constructors as to follow the normalized syntax.
+We now present some example programs in \lambdaPMC\ that illustrate
+the execution of the abstract machine.  Both examples share an
+initial heap $\Gamma$ with bindings for some constructors
+and the \textit{tail} function:
 \[
-  \Gamma = \{ nil = \nil,\ u = \unit,\ tail = \tailPMC \}   
+  \Gamma = [ nil \mapsto \nil,\ u \mapsto \unit,\ tail \mapsto \tailPMC ]
 \]
-For a first example consider \textit{zipWith} (section \ref{sec:intro}) applied to a thunk that will return a list with a single element.
-\[
-  \llet{xs = \app{\singlePMC}{u}}{\app{\isShort}{xs}}
-\]
-The full execution of the machine is presented in figure \ref{fig:ex-short}.
-Note that \textit{isShort} stands for the \lambdaPMC\ function and is not a variable.
-This example shows the application of most rules, \dots.
+
+\paragraph{Example 1}
+For a first example consider \textit{isShort} function of
+Section~\ref{sec:intro} applied to a thunk that will return a list
+with a single (unit) element.
+\begin{equation}
+  \begin{split}
+  \alet~&xs = \app{\singlePMC}{u} \\
+  \ain~&\app{\lambda(\isShortBody)}{xs}
+  \end{split} \label{eq:example1}
+\end{equation}
+Figure~\ref{fig:ex-short} shows the sequence of machine configurations
+starting from the initial heap $\Gamma$ and an empty stack.  Note that
+the thunk $l_1$ associated with the expression bound to $xs$ 
+has been evaluated as a side-effect of pattern matching.
 
 \begin{figure*}
 \[
@@ -159,12 +169,12 @@ This example shows the application of most rules, \dots.
     \hline
     \text{Heap}                             & \text{Control}                                             & \text{Top of Stack}                        & \text{Rule}            \\
     \hline
-    \Gamma                                  & \eval{\llet{xs = \app{\singlePMC}{u}}{\app{\isShort}{xs}}} & \text{---}                                 & (\smallrule{Let})      \\
+    \Gamma                                  & \eval{\llet{xs = \app{\singlePMC}{u}}{\app{\lambda(\ldots)}{xs}}} & \text{---}                                 & (\smallrule{Let})      \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}]
-                                            & \eval{\app{\isShort}{l_1}}                                 & \text{---}                                 & (\smallrule{App1})     \\
-    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\isShort}                                            & l_1                                        & (\smallrule{App2})     \\
-    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{\isShortBody}})}              & \text{---}                                 & (\smallrule{Sat})      \\
-    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[\,]}{\matcharg{l_1}{\isShortBody}}                 & \$                                         & (\smallrule{Arg})      \\
+                                            & \eval{\app{\lambda(\isShortBody)}{l_1}}                                 & \text{---}                                 & (\smallrule{App1})     \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\lambda(\isShortBody)}                                            & l_1                                        & (\smallrule{App2})     \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{(\isShortBody)}})}              & \text{---}                                 & (\smallrule{Sat})      \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[\,]}{\matcharg{l_1}{(\isShortBody)}}                 & \$                                         & (\smallrule{Arg})      \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\isShortBody}                                & \$                                         & (\smallrule{Alt1})     \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}}          & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Cons1})    \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{l_1}                                                 & @([\,],\matchpat{(x : y : ys)}{\retFalse}) & (\smallrule{Var})      \\
@@ -193,21 +203,46 @@ This example shows the application of most rules, \dots.
     \Gamma[l_1\mapsto(u : nil)]             & \eval{\true}                                               & \text{---}                                 &                        \\
   \end{array}
 \]
-\caption{Execution of \textit{isShort} applied to a list with a single element \unit}
+\caption{Execution of Example 1}
 \label{fig:ex-short}
 \end{figure*}
 
-For a second example consider a function similar to \textit{isShort}.
+\paragraph{Example 2}
+For the second example consider the following Haskell function with
+two list arguments (which is a simplification of the \textit{zipWith}
+function of Section~\ref{sec:examples}):
 \begin{verbatim}
   f (x:xs) (y:ys) = False
   f xs ys         = True
 \end{verbatim}
+%
+Like \textit{zip} and \textit{zipWith}, $f$ is strict on the first list argument
+but not the second: if the first list is \texttt{[]} then the second
+list will not be evaluated.
+This means that an expression such as \textit{zip xs (tail xs)} is
+well-defined even when $xs$ is the empty list.
+We will see that the evaluation of the
+translation into \lambdaPMC\ preserves this strictness property.
 
-Its translation to \lambdaPMC.
-\[ 
-  f = \lazyPMC 
+The translation of \verb|f [] (tail [])| into \lambdaPMC\ is:
+\begin{equation}
+  \begin{split}
+  &\alet~ zs = \app{tail}{nil} \\
+  &\ain~ (\lazyPMC)~nil~zs
+  \end{split} \label{eq:example2}
+\end{equation}
+Fgure~\ref{fig:ex-lazy} shows the execution of~\eqref{eq:example2}
+form the initial heap $\Gamma$.  Note that thunk $l_1$ for the second
+argument is unevaluated and evaluation succeeds with result
+\textsf{True}.
+
+If we were to reverse the order of arguments, i.e.\@
+attempt to evaluate
+\[
+   (\lazyPMC)~zs~nil
 \]
-An example execution of $\app{\app{f}{nil}}{\app{tail}{nil}}$ in figure \ref{fig:ex-lazy}.
+then the evaluation would get stuck on $tail~ nil$.
+
 
 \begin{figure*}
   \[
@@ -215,18 +250,18 @@ An example execution of $\app{\app{f}{nil}}{\app{tail}{nil}}$ in figure \ref{fig
       \hline
       \text{Heap}               & \text{Control}                                          & \text{Top of Stack}    & \text{Rule}            \\
       \hline
-      \Gamma                    & \eval{\llet{res = \tailNil}{\app{\app{f}{nil}}{res}}}   & \text{---}             & (\smallrule{Let})      \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\app{\app{f}{nil}}{l1}}                           & \text{---}             & (\smallrule{App1})     \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\app{f}{nil}}                                     & l1                     & (\smallrule{App1})     \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\lazyPMC}                                         & nil                    & (\smallrule{App2})     \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{nil}{\lazyBody}}}                & l1                     & (\smallrule{App2})     \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}} & \text{---}             & (\smallrule{Sat})      \\
-      \Gamma[l1\mapsto\tailNil] & \match{[]}{\matcharg{l1}{\matcharg{nil}{\lazyBody}}}    & \$                     & (\smallrule{Arg})      \\
-      \Gamma[l1\mapsto\tailNil] & \match{[l1]}{\matcharg{nil}{\lazyBody}}                 & \$                     & (\smallrule{Arg})      \\
+      \Gamma                    & \eval{\llet{zs = \tailNil}{\app{\app{\lambda(\ldots)}{nil}}{xs}}}   & \text{---}             & (\smallrule{Let})      \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\app{\app{\lambda(\ldots)}{nil}}{l1}}                           & \text{---}             & (\smallrule{App1})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\app{\lambda(\ldots)}{nil}}                                     & l1                     & (\smallrule{App1})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\lambda\!\!\lazyBody}                                         & nil                    & (\smallrule{App2})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{(\matcharg{nil}{\!\!\lazyBody})}}                & l1                     & (\smallrule{App2})     \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\abstr{(\matcharg{l1}{\matcharg{nil}{\!\!\lazyBody}})}} & \text{---}             & (\smallrule{Sat})      \\
+      \Gamma[l1\mapsto\tailNil] & \match{[]}{\matcharg{l1}{\matcharg{nil}{\!\!\lazyBody}}}    & \$                     & (\smallrule{Arg})      \\
+      \Gamma[l1\mapsto\tailNil] & \match{[l1]}{\matcharg{nil}{\!\!\lazyBody}}                 & \$                     & (\smallrule{Arg})      \\
       \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyBody}                            & \$                     & (\smallrule{Alt1})     \\
       \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyFalse}                           & ?([nil,~l1],\lazyTrue) & (\smallrule{Cons1})    \\
       \Gamma[l1\mapsto\tailNil] & \eval{nil}                                              & @([l1],\lazyFalse)     & (\smallrule{Var})      \\
-      \Gamma[l1\mapsto\tailNil] & \eval{\nil}                                             & !tailNil               & (\smallrule{Update})   \\
+      \Gamma[l1\mapsto\tailNil] & \eval{\nil}                                             & !nil               & (\smallrule{Update})   \\
       \Gamma[l1\mapsto\tailNil] & \eval{\nil}                                             & @([l1],\lazyFalse)     & (\smallrule{Fail})     \\
       \Gamma[l1\mapsto\tailNil] & \match{[]}{\matchfail}                                  & ?([nil,~l1],\lazyTrue) & (\smallrule{Alt2})     \\
       \Gamma[l1\mapsto\tailNil] & \match{[nil,~l1]}{\lazyTrue}                            & \$                     & (\smallrule{Bind})     \\
@@ -235,11 +270,10 @@ An example execution of $\app{\app{f}{nil}}{\app{tail}{nil}}$ in figure \ref{fig
       \Gamma[l1\mapsto\tailNil] & \eval{\true{}}                                          & \text{---}             &                        \\
     \end{array}
   \]
-  \caption{Example of lazyness}
+  \caption{Execution of Example 2}
   \label{fig:ex-lazy}
 \end{figure*}
 
-If the arguments were switched around then execution would get stuck.
 
 
 %%% Local Variables:

@@ -63,7 +63,7 @@
 
 % for the examples
 
-\newcommand{\nil}{[\,]}
+\newcommand{\nil}{\texttt{[]}}
 \newcommand{\unit}{\cons{Unit}}
 \newcommand{\true}{\cons{True}}
 \newcommand{\false}{\cons{False}}
@@ -89,7 +89,12 @@
     \abstr{\matchalt
         {\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}
         {\matchpat{xs}{\matchpat{ys}{\retTrue}}}}}
-\newcommand{\lazyBody}{\matchalt{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}{\matchpat{xs}{\matchpat{ys}{\retTrue}}}}
+%\newcommand{\lazyBody}{\matchalt{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}{\matchpat{xs}{\matchpat{ys}{\retTrue}}}}
+\newcommand{\lazyBody}{\begin{array}[t]{l}
+                             \matchpat{((x : xs)}{\matchpat{(y : ys)}{\retFalse}} \\
+                             \mid~ \matchpat{xs}{\matchpat{ys}{\retTrue})}
+                             \end{array}}
+    
 \newcommand{\lazyFalse}{\matchpat{(x : xs)}{\matchpat{(y : ys)}{\retFalse}}}
 \newcommand{\lazyTrue}{\matchpat{xs}{\matchpat{ys}{\retTrue}}}
 \newcommand{\tailNil}{\app{\tail}{nil}}
