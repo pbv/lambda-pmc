@@ -27,8 +27,8 @@
 
 \subsection{Expressions and matchings}
 Figure~\ref{fig:syntax} defines \lambdaPMC, a small functional
-language with syntatical categories for \emph{expressions},
-\emph{matchings} and \emph{patterns}.  Matchings and patterns are
+language with syntactical categories for \emph{expressions},
+\emph{matchings} and \emph{patterns}. Matchings and patterns are
 based on the PMC calculus of Kahl~\cite{kahl_2004}.
 The only extension is the \llet{\ldots}{\ldots} construct
 for defining (possibly) recursive local bindings.
@@ -64,13 +64,13 @@ and not just lambda abstractions.
 Following~\cite{kahl_2004} we review the pattern matching calculus as
 two \emph{redex} reduction relations, namely, $\expred$ between expressions and
 $\matred$ between matchings. We leave the definition of an evaluation
-strategy and normal forms to Section~\ref{sec:bigstep} so this does
+strategy and normal forms to Section~\ref{sec:bigstep}, so this does
 not yet define a complete semantics.
 
 We use the notation $m[e'/x]$ for the substitution of free occurrences
 of variable $x$ for an expression $e'$ in the matching $m$.
-The definitions of free occurences and substitution are standard and
-we therefore omit them.
+The definitions of free occurrences and substitution are standard and
+are therefore omitted.
 
 The first two rules state that failure is the left unit for
 $\amatchalt$ while return is the left zero:
@@ -128,7 +128,7 @@ In the last rule we assume $c\neq c'$.
 %
 We will present some examples of the translation of Haskell
 definitions into \lambdaPMC.  The emphasis is on illustrating the
-correspondance between the Haskell source and the translated notation.
+correspondence between the Haskell source and the translated notation.
 
 Consider the following definition of the \emph{zipWith} function that
 combines two lists using a functional argument:
@@ -203,7 +203,7 @@ translates as:
 
 
 
-  Patterns guards can also be used to encode
+  Pattern guards can also be used to encode
   \emph{view patterns}~\cite{wadler_1987,ghc_guide_view_patterns}
   that allow matching over abstract data types.
   Consider a Haskell data type for sequences implemented as a binary tree
@@ -227,7 +227,7 @@ length (view -> Cons x xs) = 1 + length xs
 \end{verbatim}
 
 To match a variable \texttt{t} with a pattern \verb|view -> patt|
-we need to evaluate \verb|view t| and match the result againts \verb|patt|.
+we need to evaluate \verb|view t| and match the result against \verb|patt|.
 This can be translated into \lambdaPMC\ in a straightforward way
 using pattern guards:
 \[
@@ -259,8 +259,8 @@ Again the translation in \lambdaPMC\ is straightforward:
   \end{array}
 \]
 
-Finaly, the GHC extensions for \emph{LambdaCase} and
-\emph{LambdaCases}~\cite{ghc_guide_lambda_case} can be trivally
+Finally, the GHC extensions for \emph{LambdaCase} and
+\emph{LambdaCases}~\cite{ghc_guide_lambda_case} can be trivially
 encoded as abstraction matchings; for example
 \begin{verbatim}
 sign = \case x | x>0 -> 1
@@ -275,7 +275,7 @@ translates directly to:
  \end{array}    
 \]
 %
-We could also avoid the trival guard in the last alternative:
+We could also avoid the trivial guard in the last alternative:
 %
 \[ sign = \lambda (x \amatchpat \!\!\begin{array}[t]{l}
   ((x>0) \amatcharg  \textsf{True} \amatchpat \matchreturn{1} \\

@@ -123,7 +123,7 @@ Rule~\smallrule{App2} and \smallrule{Sat} handle application
 and matching evaluations, respectively. Note that the
 side conditions on $\arity{m}$ ensure at most one
 rule applies.
-As in the bigstep semantics, rule \smallrule{Sat} switches
+As in the big-step semantics, rule \smallrule{Sat} switches
 from evaluating an expression to a
 matching, pushing a mark `\$' onto the return stack
 to allow checking when no pending alternatives
@@ -161,7 +161,7 @@ with a single (unit) element.
 Figure~\ref{fig:ex-short} shows the sequence of machine configurations
 starting from the initial heap $\Gamma$ and an empty stack.  Note that
 the thunk $l_1$ associated with the expression bound to $xs$ 
-has been evaluated as a side-effect of pattern matching.
+has been evaluated as a side effect of pattern matching.
 
 \begin{figure*}
 \[
@@ -173,7 +173,7 @@ has been evaluated as a side-effect of pattern matching.
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}]
                                             & \eval{\app{\lambda(\isShortBody)}{l_1}}                                 & \text{---}                                 & (\smallrule{App1})     \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\lambda(\isShortBody)}                                            & l_1                                        & (\smallrule{App2})     \\
-    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{(\isShortBody)}})}              & \text{---}                                 & (\smallrule{Sat})      \\
+    \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \eval{\abstr{(\matcharg{l_1}{(\isShortBody)})}}              & \text{---}                                 & (\smallrule{Sat})      \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[\,]}{\matcharg{l_1}{(\isShortBody)}}                 & \$                                         & (\smallrule{Arg})      \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\isShortBody}                                & \$                                         & (\smallrule{Alt1})     \\
     \Gamma[l_1 \mapsto \app{\singlePMC}{u}] & \match{[l_1]}{\matchpat{(x : y : ys)}{\retFalse}}          & ?([l_1],\matchpat{ys}{\retTrue})           & (\smallrule{Cons1})    \\
@@ -231,7 +231,7 @@ The translation of \verb|f [] (tail [])| into \lambdaPMC\ is:
   &\ain~ (\lazyPMC)~nil~zs
   \end{split} \label{eq:example2}
 \end{equation}
-Fgure~\ref{fig:ex-lazy} shows the execution of~\eqref{eq:example2}
+Figure~\ref{fig:ex-lazy} shows the execution of~\eqref{eq:example2}
 form the initial heap $\Gamma$.  Note that thunk $l_1$ for the second
 argument is unevaluated and evaluation succeeds with result
 \textsf{True}.

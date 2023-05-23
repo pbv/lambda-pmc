@@ -133,7 +133,7 @@ We obtain the proof obligation as
     \Gamma; \lset; A; \matchfail \matev \Gamma;\matchfail
     \endprooftree
   \]
-  The proof obligation follows trivally by either the empty sequence
+  The proof obligation follows trivially by either the empty sequence
   (if $A=[\,]$) or an application of \smallrule{Return1C}.
     
   \paragraph{Case \bigrule{Arg}}
@@ -217,11 +217,11 @@ We obtain the proof obligation as
 
   The next result establishes that the small-step semantics
   derives only evaluations corresponding to the
-  the big-step semantics, provided we restrict ourselves
+  big-step semantics, provided we restrict ourselves
   to balanced evaluations.
 
   \begin{definition}
-    An sequence of evaluation steps
+    A sequence of evaluation steps
     $(\Gamma,C,\retstack) \Rightarrow^{*}
     (\Delta,C',\retstack)$ is \emph{balanced} if
     the initial and final stacks are identical and every intermediate

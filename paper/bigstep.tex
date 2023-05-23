@@ -32,7 +32,7 @@ lazy evaluation~\cite{launchbury_1993}.
 As in Launchbury's semantics, we will restrict arguments of
 applications to be variables; complex arguments must be explicitly
 named using let bindings.  This ensures that we can update a result
-after evaluation and properly implemement call-by-need (i.e. lazy)
+after evaluation and properly implement call-by-need (i.e. lazy)
 evaluation.
 
 Figure~\ref{fig:syntax-normalized} defines the syntax for normalized
@@ -49,7 +49,7 @@ from a heap.
 
 Because matchings can encode multi-argument functions and also
 argument applications, we have to define the results of evaluations
-accordingly. First we define a syntatical measure \arity{m} of the \emph{arity}
+accordingly. First we define a syntactical measure \arity{m} of the \emph{arity}
 of a matching:
 \[
   \begin{array}{rcll}
@@ -65,7 +65,7 @@ The last condition generalizes the Haskell syntax rule that the number
 of patterns for each clause of a definition must be the
 same~(Section~4.4.3.1 of~\cite{haskell_2010_report}).
 
-An expression is in weak head normal normal (whnf) $\whnf$ if it is either
+An expression is in weak head normal (whnf) $\whnf$ if it is either
 a matching abstraction of arity greater than zero or a constructor:
 \[
 \begin{array}{rcll}
@@ -83,7 +83,7 @@ $\lambda(\matcharg{z}{\matchpat{x}{\matchpat{y}{\matchreturn{e}}}})$
 is in whnf. This is similar to a partial application in an abstract
 machine with multi-argument functions e.g.\@ the
 STG~\cite{jones_1992}.  However, in our case this is done not for
-efficency but rather to simplify evaluation by ensuring that we only
+efficiency but rather to simplify evaluation by ensuring that we only
 ever evaluate saturated matchings.
 
 We also define a weak normal form $\matchresult$ for matching results, namely,
@@ -233,7 +233,7 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
     yields heap $\Delta$ and result \matchresult.
   \end{description}
 
-  In the $\matev$ judgements the argument stack \argstack\ is
+  In the $\matev$ judgments the argument stack \argstack\ is
   a sequence of variables representing the pending arguments
   to be applied to the matching expression.
 
@@ -262,7 +262,7 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
     
   Rule~\bigrule{App} first evaluates the function to
   obtain a matching abstraction and then evaluates
-  the the argument application.
+  the argument application.
     
   Rule~\bigrule{Let} is identical to the one by Sestof: it allocates
   new expressions in the heap (taking care of renaming) and
@@ -270,7 +270,7 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
   
   \paragraph{Remarks about rules for matchings (Figure~\ref{fig:match-eval}).}
 
-  Rule~\bigrule{Return} terminates evaluation sucessfully
+  Rule~\bigrule{Return} terminates evaluation successfully
   when we reach a return expression.
   The notation $A\amatcharg e$ represents the nested applications
   of  left over arguments on the stack $A$ to the expression $e$. The definition is:
@@ -290,7 +290,7 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
   variable $x$ to the heap variable $y$.
   
   Rules~\bigrule{Cons1} and \bigrule{Cons2} handle the successful
-  and unsucessful matching of a constructor pattern; in the later
+  and unsuccessful matching of a constructor pattern; in the later
   case the matching evaluation returns \matchfail.  Note also that
   \bigrule{Cons1} continues the matching of sub-patterns in left to
   right order.
@@ -339,8 +339,8 @@ One solution would be to join the two alternatives for the boolean guard:
      \quad \lreturn\alet~ b = (x==y)~ \ain~
                          \lambda(b \amatcharg \!\!\!\begin{array}[t]{l}
                                                 (\cons{True} \amatchpat \matchreturn{nodups~ xs} \\
-                                                \mid \cons{False} \amatchpat \matchreturn{x:nodups ~ xs})\rreturn\end{array}  \\
-                         \mid [\,] \amatchpat \matchreturn{[\,]}
+                                                \mid \cons{False} \amatchpat \matchreturn{x:nodups ~ xs})\rreturn)\end{array}  \\
+                         \mid [\,] \amatchpat \matchreturn{[\,]})
                        \end{array}
 \]
 The disadvantage of this encoding (besides verbosity) is that we lose
@@ -353,7 +353,7 @@ normalized syntax for \lambdaPMC:
   \begin{array}{llll}
   m &::=& \ldots & \text{(as in Figure~\ref{fig:syntax-normalized})} \\
     & | & \matcharg{e}{\matchpat{\constr{c}{\vec{p}}}{m}} & \text{pattern guards}
-                                                            \end {array}
+                                                            \end{array}
 \]
 
 Now \textit{nodups} can be written exactly as in Section~\ref{sec:examples}:
@@ -409,9 +409,9 @@ the \textit{length} function over join lists:
     \end{array} 
 \]
 One issue with this encoding is that evaluation of the view function is not shared.
-By constrast, GHC will try to optimize calls to view functions in
+By contrast, GHC will try to optimize calls to view functions in
 such cases~\cite{ghc_guide_view_patterns}.
-Such as optimization can be expressed in \lambdaPMC\ by using a let to explicily share the result.
+Such as optimization can be expressed in \lambdaPMC\ by using a let to explicitly share the result.
 However, we lose the one-to-one relation with the source program:
 \[
   length' = \lambda (t \amatchpat\!\! \begin{array}[t]{l}
@@ -419,7 +419,7 @@ However, we lose the one-to-one relation with the source program:
   ~\ain~ \lambda (v \amatcharg
   \!\!\!\begin{array}[t]{l}
     (\cons{Nil} \amatchpat \matchreturn {0}  \\
-    \mid \cons{Cons}(h,xs) \amatchpat \matchreturn{1+length'~ xs}) \rreturn
+    \mid \cons{Cons}(h,xs) \amatchpat \matchreturn{1+length'~ xs}) \rreturn))
   \end{array}
                                   \end{array}
 \]
