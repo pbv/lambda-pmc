@@ -221,7 +221,7 @@ view :: JList a -> JListView a
   Using this view function, we can define a recursive \textit{length} function
   without exposing the join list constructors:
 \begin{verbatim}
-length :: JList a -> Integer
+length :: JList a -> Int
 length (view -> Nil) = 0
 length (view -> Cons x xs) = 1 + length xs
 \end{verbatim}
@@ -250,7 +250,7 @@ Again the translation in \lambdaPMC\ is straightforward:
   view = \lambda\!\!
   \begin{array}[t]{l}
     (\cons{Empty} \amatchpat \matchreturn{\cons{Nil}} \\
-    \mid \cons{Single}(x) \amatchpat \matchreturn{\cons{Cons}(x,\cons{Nil})} \\
+    \mid \cons{Single}(x) \amatchpat \matchreturn{\cons{Cons}(x,\cons{Empty})} \\
     \mid \cons{Join}(xs,ys) \amatchpat view~xs \amatcharg 
     \cons{Cons}(h,t) \amatchpat \\
     \qquad \qquad\qquad\qquad \matchreturn{\cons{Cons}(h,\cons{Join}(t,ys))} \\

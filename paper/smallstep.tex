@@ -7,7 +7,7 @@ each transition performs only bounded amount of work. The approach
 follows the derivation of the Krivine machine in~\cite{sestof_1997}.
 
 \subsection{Configurations}
-Because our big-step semantics has two mutually recursive judgements,
+Because our big-step semantics has two mutually recursive judgments,
 we introduce a \emph{control} component that keeps
 track of the current evaluation mode.
 \[ \begin{array}{lcll}
@@ -28,15 +28,13 @@ in a \emph{stack}.  A stack is a list of \emph{continuations} $\kont$:
    \end{array}
    \]
 
-A machine configuration is a triple
-$(\Gamma,C,\retstack)$ of heap, control, 
-and return stack.  The initial configuration for evaluating $e$ is
-$(\{\},\, \eval e,\, [\,])$.  Evaluation may get ``stuck''
-in a configuration
-$(\Gamma,\, \match{\argstack}{\matchfail},\, \$:\retstack)$
-due to pattern matching failure, or
-terminate successfully in a
-configuration $(\Gamma, \eval w, [\,])$.
+   A machine configuration is a triple $(\Gamma,C,\retstack)$ of heap,
+   control, and return stack.  The initial configuration for
+   evaluating $e$ is $(\{\},\, \eval e,\, [\,])$.  Evaluation may
+   terminate successfully in a configuration
+   $(\Gamma, \eval w, [\,])$, get ``stuck'' in a configuration
+   $(\Gamma,\, \match{\argstack}{\matchfail},\, \$:\retstack)$ due to
+   pattern matching failure, or diverge (i.e.\@ non-termination).
 
 \begin{figure*}
   \[

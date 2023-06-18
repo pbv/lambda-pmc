@@ -75,7 +75,7 @@ a matching abstraction of arity greater than zero or a constructor:
 \]
 If $\arity{m}>0$ then $m$ expects at least one argument, i.e.\@
 behaves like a lambda abstraction.  If $\arity m= 0$ then $m$ is
-\emph{satured} (i.e.\@ fully applied) and therefore \emph{not} a whnf.
+\emph{saturated} (i.e.\@ fully applied) and therefore \emph{not} a whnf.
 
 This definition of weak normal forms implies that partially applied
 matchings will not be evaluated e.g.\@
@@ -298,13 +298,13 @@ and~\ref{fig:match-eval} by two mutually recursive judgments:
 
   Rules~\bigrule{Alt1} and \bigrule{Alt2} handle progress and failure
   in alternative matchings.  Note that in \bigrule{Alt2} evaluation
-  continues with the updated heap $\Delta$ because the evaluations
-  effects of the failed match need to be shared when evaluating $m_2$.
+  continues with the updated heap $\Delta$ because the effects of evaluation
+  of the failed match are preserved when evaluating $m_2$.
   Note also that the argument stack is shared between $m_1$ and $m_2$
   implementing rule $(\amatcharg\mid)$ of Section~\ref{sec:reduction}.
   This sharing justifies why we restrict argument supply to single
   variables: allowing arbitrary expressions as arguments could
-  duplicate computation because the same expression could be evaluated
+  duplicate computations because the same expression could be evaluated
   in more than one alternative. By restricting to single variables
   we can ensure that results are shared.
     
@@ -319,7 +319,7 @@ of how to encode the boolean and pattern guards.
 
 Consider again the \textit{nodups} example of
 Section~\ref{sec:examples}; at first sight, it may seem that we can
-use let to introduce a name for the boolean guard $(x==y)$:
+use let to introduce a name for the boolean guard:
 \[
   nodups = \lambda \!\!\begin{array}[t]{l}
     ((x:xs) \amatchpat xs \amatcharg (y:xs') \amatchpat \\
@@ -343,9 +343,8 @@ One solution would be to join the two alternatives for the boolean guard:
                          \mid [\,] \amatchpat \matchreturn{[\,]})
                        \end{array}
 \]
-The disadvantage of this encoding (besides verbosity) is that we lose
-the direct connection with the original three equations of the source
-program.
+However, this encoding would not work if the equations had 
+pattern guards with different expressions.
 
 A better solution is to allow pattern guards explicitly in the
 normalized syntax for \lambdaPMC:
